@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: aimbitious-job-portal-preference-service
+  config:
+    import: optional:configserver:http://localhost:8888

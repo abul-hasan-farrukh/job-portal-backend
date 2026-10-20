@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/cloud/aimbitious-job-portal-api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/cloud/aimbitious-job-portal-config-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/cloud/aimbitious-job-portal-service-registry/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/cloud/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/cloud/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/common-lib/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-ai-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-application-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-company-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-job-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-notification-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-preference-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-resume-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/aimbitious-job-portal-user-service/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/services/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
+  </component>
+</project>
