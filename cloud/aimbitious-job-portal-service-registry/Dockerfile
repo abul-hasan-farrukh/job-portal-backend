@@ -6,11 +6,7 @@ COPY . .
 
 RUN chmod +x cloud/aimbitious-job-portal-service-registry/mvnw
 
-RUN ./cloud/aimbitious-job-portal-service-registry/mvnw
-    -f pom.xml
-    -pl cloud/aimbitious-job-portal-service-registry
-    -DskipTests
-    package
+RUN ./cloud/aimbitious-job-portal-service-registry/mvnw -f pom.xml -pl cloud/aimbitious-job-portal-service-registry -DskipTests package
 
 FROM eclipse-temurin:21-jre
 
