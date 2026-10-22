@@ -9,7 +9,6 @@ RUN chmod +x cloud/aimbitious-job-portal-config-server/mvnw
 RUN ./cloud/aimbitious-job-portal-config-server/mvnw \
     -f pom.xml \
     -pl cloud/aimbitious-job-portal-config-server \
-    -am \
     -DskipTests \
     package
 
