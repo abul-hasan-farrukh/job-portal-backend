@@ -15,19 +15,17 @@
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
-        <module name="aimbitious-job-portal-config-server" />
         <module name="job-portal-common" />
         <module name="aimbitious-job-portal-resume-service" />
+        <module name="aimbitious-job-portal-ai-service" />
         <module name="aimbitious-job-portal-user-service" />
         <module name="aimbitious-job-portal-application-service" />
         <module name="aimbitious-job-portal-company-service" />
-        <module name="aimbitious-job-portal-api-gateway" />
-        <module name="aimbitious-job-portal-service-registry" />
         <module name="aimbitious-job-portal-job-service" />
         <module name="aimbitious-job-portal-notification-service" />
         <module name="aimbitious-job-portal-preference-service" />
       </profile>
-      <profile name="Annotation profile for aimbitious-job-portal-ai-service" enabled="true">
+      <profile name="Annotation profile for aimbitious-job-portal-api-gateway" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
@@ -35,7 +33,27 @@
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
         </processorPath>
-        <module name="aimbitious-job-portal-ai-service" />
+        <module name="aimbitious-job-portal-api-gateway" />
+      </profile>
+      <profile name="Annotation profile for aimbitious-job-portal-config-server" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="aimbitious-job-portal-config-server" />
+      </profile>
+      <profile name="Annotation profile for aimbitious-job-portal-service-registry" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.46/lombok-1.18.46.jar" />
+        </processorPath>
+        <module name="aimbitious-job-portal-service-registry" />
       </profile>
     </annotationProcessing>
   </component>
