@@ -1,4 +1,3 @@
-```dockerfile
 FROM eclipse-temurin:21-jdk AS build
 
 WORKDIR /app
@@ -23,4 +22,3 @@ COPY --from=build /app/cloud/aimbitious-job-portal-config-server/target/*.jar ap
 EXPOSE 8888
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
-```
