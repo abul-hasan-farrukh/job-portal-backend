@@ -6,8 +6,8 @@
 		<groupId>com.aimbitious.job</groupId>
 		<artifactId>job-portal-service</artifactId>
         <version>0.0.1-SNAPSHOT</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
 	<artifactId>aimbitious-job-portal-resume-service</artifactId>
 
