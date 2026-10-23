@@ -4,8 +4,7 @@ server:
 spring:
   application:
     name: aimbitious-job-portal-service-registry
-  config:
-    import: "configserver:https://aimbitious-config-server.onrender.com"
+
 
 eureka:
   client:
