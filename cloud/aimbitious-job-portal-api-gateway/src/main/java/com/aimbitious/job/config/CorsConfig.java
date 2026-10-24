@@ -10,9 +10,8 @@ public class CorsConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                        "http://localhost:3000",
-                        "http://localhost:4200",
-                        "http://localhost:5173"
+                        "http://localhost:5173",
+                        "https://aimbitious-job-portal-nu.vercel.app"
                 )
                 .allowedMethods("*")
                 .allowedHeaders("*")
