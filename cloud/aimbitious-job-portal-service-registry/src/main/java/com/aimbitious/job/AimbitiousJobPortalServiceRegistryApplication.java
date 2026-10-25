@@ -11,5 +11,4 @@ public class AimbitiousJobPortalServiceRegistryApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(AimbitiousJobPortalServiceRegistryApplication.class, args);
 	}
-
 }
