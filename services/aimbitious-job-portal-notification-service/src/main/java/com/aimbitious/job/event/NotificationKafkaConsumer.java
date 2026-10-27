@@ -1,7 +1,8 @@
 package com.aimbitious.job.event;
 
-import com.aimbitious.job.services.EmailNotificationService;
+import com.aimbitious.job.service.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -17,8 +18,9 @@ public class NotificationKafkaConsumer {
             groupId = "notification-service",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void handleStatusChanged(ApplicationStatusChangedEvent event) throws Exception {
-        System.out.println("received------------ "+event);
+    public void handleStatusChanged(ApplicationStatusChangedEvent event) {
+        log.info("Received status-changed event: application={}, newStatus={}",
+                event.getApplicationId(), event.getNewStatus());
         emailService.sendStatusChangedEmail(event);
     }
 
