@@ -22,5 +22,13 @@ public class NotificationKafkaConsumer {
         emailService.sendStatusChangedEmail(event);
     }
 
-
+    @KafkaListener(
+            topics = "application.note.added",
+            groupId = "notification-service",
+            containerFactory = "kafkaListenerContainerFactory"
+    )
+    public void handleNoteAdded(ApplicationNoteAddedEvent event) {
+        log.info("Received note-added event: application={}", event.getApplicationId());
+        emailService.sendNoteAddedEmail(event);
+    }
 }
