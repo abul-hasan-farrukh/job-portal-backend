@@ -14,7 +14,6 @@
 
     <artifactId>job-portal-common</artifactId>
     <packaging>jar</packaging>
-
     <name>job-portal-common</name>
     <description>Shared library - enums, exceptions, and DTO for all services</description>
 
@@ -29,8 +28,8 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-<!--            <scope>annotationProcessor</scope>-->
-            <optional>true</optional>
+            <scope>annotationProcessor</scope>
+<!--            <optional>true</optional>-->
         </dependency>
 
         <dependency>
