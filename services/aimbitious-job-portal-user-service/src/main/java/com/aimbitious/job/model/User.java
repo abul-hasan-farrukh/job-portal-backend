@@ -11,28 +11,25 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.security.AuthProvider;
+import com.aimbitious.job.domain.AuthProvider;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "users")
+@EqualsAndHashCode
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
-@Builder
-@EqualsAndHashCode
-@Table(name = "users")
-
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    @Column(nullable = false)
+    @NotBlank(message = "fullName is mandatory")
     private String fullName;
 
-    @Column(nullable = false)
     private String password;
 
     @Column(nullable = false, unique = true)
@@ -44,30 +41,30 @@ public class User {
 
     private String profileImage;
 
-//    @Enumerated(EnumType.STRING)
-//    @Column(nullable = false)
-//    private AuthProvider authProvider = AuthProvider;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AuthProvider authProvider = AuthProvider.LOCAL;
 
     private String googleId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @NotNull(message = "Role is mandatory")
-    private UserRole role = UserRole.ROLE_JOB_SEEKER;
+    private UserRole role;
 
-//    @Column(nullable = false)
-//    private Boolean verified = false;
+    @Column(nullable = false)
+    private Boolean verified = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserStatus status = UserStatus.ACTIVE;
 
-    @CreationTimestamp
     @Column(nullable = false, updatable = false)
+    @CreationTimestamp
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(nullable = false)
+    @UpdateTimestamp
     private LocalDateTime updatedAt;
 
     private LocalDateTime lastLogin;
@@ -76,6 +73,7 @@ public class User {
 
     private LocalDateTime deletedAt;
 
-//    @Column(nullable = false)
-//    private Integer tokenVersion = 0;
+    @Column(nullable = false)
+    private Integer tokenVersion = 0;
+
 }
