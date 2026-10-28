@@ -32,6 +32,7 @@ public class AddWorkExperience {
 
     private LocalDate endDate;
 
+    @Builder.Default
     private Boolean isCurrentJob = false;
 
     private String description;
