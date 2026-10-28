@@ -1,6 +1,7 @@
 package com.aimbitious.job.controller;
 
 
+import com.aimbitious.job.exception.UserException;
 import com.aimbitious.job.payload.AuthResponse;
 import com.aimbitious.job.payload.LoginRequest;
 import com.aimbitious.job.payload.SignupRequest;
@@ -22,15 +23,13 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<AuthResponse> signup(
-            @RequestBody @Valid SignupRequest req
-            ) throws Exception {
+            @RequestBody @Valid SignupRequest req) throws UserException {
         return ResponseEntity.ok(authService.signup(req));
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(
-            @RequestBody @Valid LoginRequest req
-    ) throws Exception {
+            @RequestBody @Valid LoginRequest req) throws UserException {
         return ResponseEntity.ok(authService.login(req));
     }
 }
