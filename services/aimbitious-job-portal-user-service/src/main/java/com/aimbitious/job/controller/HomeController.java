@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class HomeController {
 
-    @GetMapping("/")
+    @GetMapping("/home")
     public ResponseEntity<String> home() {
         return ResponseEntity.ok("Welcome to Job Portal User Service!");
     }
