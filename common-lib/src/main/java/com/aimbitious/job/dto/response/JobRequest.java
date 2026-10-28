@@ -1,12 +1,10 @@
-package com.aimbitious.job.dto;
+package com.aimbitious.job.dto.response;
 
 import com.aimbitious.job.domain.ExperienceLevel;
 import com.aimbitious.job.domain.JobType;
+import com.aimbitious.job.domain.SalaryPeriod;
 import com.aimbitious.job.domain.WorkMode;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -20,7 +18,8 @@ import java.util.Set;
 @Builder
 public class JobRequest {
 
-    @NotBlank(message = "job title is required")
+    @NotBlank(message = "Job title is required")
+    @Size(max = 200, message = "Title must not exceed 200 characters")
     private String title;
 
     @NotBlank(message = "Description is required")
@@ -39,9 +38,9 @@ public class JobRequest {
     /** IDs from the job_tags table. */
     private Set<Long> tagIds;
 
-// ------------------------------------------------------------
-// Location — flattened for simpler API surface
-// ------------------------------------------------------------
+    // -------------------------------------------------------
+    // Location — flattened for simpler API surface
+    // -------------------------------------------------------
 
     private String address;
     private String city;
@@ -49,9 +48,9 @@ public class JobRequest {
     private String country;
     private String zipCode;
 
-    // ------------------------------------------------------------
+    // -------------------------------------------------------
     // Salary — flattened for simpler API surface
-    // ------------------------------------------------------------
+    // -------------------------------------------------------
 
     @DecimalMin(value = "0.0", inclusive = true, message = "Min salary must not be negative")
     private BigDecimal minSalary;
@@ -59,9 +58,18 @@ public class JobRequest {
     @DecimalMin(value = "0.0", inclusive = true, message = "Max salary must not be negative")
     private BigDecimal maxSalary;
 
-    // ------------------------------------------------------------
+    /** ISO 4217 currency code, e.g. "USD", "INR". Defaults to "USD". */
+    private String currency;
+
+    private SalaryPeriod salaryPeriod;
+    private Boolean salaryNegotiable;
+
+    /** If false, salary appears as "Competitive" on the listing. */
+    private Boolean salaryDisclosed;
+
+    // -------------------------------------------------------
     // Classification
-    // ------------------------------------------------------------
+    // -------------------------------------------------------
 
     @NotNull(message = "Job type is required")
     private JobType jobType;
@@ -72,15 +80,15 @@ public class JobRequest {
     @NotNull(message = "Experience level is required")
     private ExperienceLevel experienceLevel;
 
-// ------------------------------------------------------------
-// Posting details
-// ------------------------------------------------------------
+    // -------------------------------------------------------
+    // Posting details
+    // -------------------------------------------------------
 
     @Min(value = 1, message = "Openings must be at least 1")
+    @Builder.Default
     private Integer openings = 1;
 
     private LocalDate applicationDeadline;
-
     private LocalDate expiresAt;
 
 }
