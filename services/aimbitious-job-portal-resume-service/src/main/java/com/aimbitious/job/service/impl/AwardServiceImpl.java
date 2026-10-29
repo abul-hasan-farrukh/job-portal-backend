@@ -1,6 +1,6 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.AwardResponse;
+import com.aimbitious.job.dto.response.AwardResponse;
 import com.aimbitious.job.mapper.ResumeMapper;
 import com.aimbitious.job.model.Award;
 import com.aimbitious.job.model.Resume;
@@ -11,6 +11,8 @@ import com.aimbitious.job.service.ResumeService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.aimbitious.job.exception.ResourceNotFoundException;
+
 
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class AwardServiceImpl implements AwardService {
     @Override
     @Transactional
     public AwardResponse addAward(Long resumeId, Long candidateId, AddAwardRequest req)
-            throws Exception {
+            throws ResourceNotFoundException {
         Resume resume = resumeService.getResumeEntity(resumeId);
         assertOwner(resume, candidateId, resumeId);
 
@@ -40,10 +42,9 @@ public class AwardServiceImpl implements AwardService {
         return ResumeMapper.toAwardResponse(awardRepository.save(award));
     }
 
-
     @Override
     @Transactional(readOnly = true)
-    public List<AwardResponse> getAwards(Long resumeId) throws Exception {
+    public List<AwardResponse> getAwards(Long resumeId) throws ResourceNotFoundException {
         resumeService.getResumeEntity(resumeId);
         return awardRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
                 .stream().map(ResumeMapper::toAwardResponse).toList();
@@ -52,7 +53,7 @@ public class AwardServiceImpl implements AwardService {
     @Override
     @Transactional
     public AwardResponse updateAward(Long awardId, Long resumeId, Long candidateId,
-                                     AddAwardRequest req) throws Exception {
+                                     AddAwardRequest req) throws ResourceNotFoundException {
         Award award = getAwardEntity(awardId, resumeId);
         assertOwner(award.getResume(), candidateId, resumeId);
 
@@ -68,26 +69,26 @@ public class AwardServiceImpl implements AwardService {
     @Override
     @Transactional
     public void deleteAward(Long awardId, Long resumeId, Long candidateId)
-            throws Exception {
+            throws ResourceNotFoundException {
         Award award = getAwardEntity(awardId, resumeId);
         assertOwner(award.getResume(), candidateId, resumeId);
         awardRepository.delete(award);
     }
 
-    private Award getAwardEntity(Long awardId, Long resumeId) throws Exception {
+    private Award getAwardEntity(Long awardId, Long resumeId) throws ResourceNotFoundException {
         Award award = awardRepository.findById(awardId)
-                .orElseThrow(() -> new Exception(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Award not found with id: " + awardId));
         if (!award.getResume().getId().equals(resumeId)) {
-            throw new Exception("Award not found with id: " + awardId);
+            throw new ResourceNotFoundException("Award not found with id: " + awardId);
         }
         return award;
     }
 
     private void assertOwner(Resume resume, Long candidateId, Long resumeId)
-            throws Exception {
+            throws ResourceNotFoundException {
         if (!resume.getCandidateId().equals(candidateId)) {
-            throw new Exception("Resume not found with id: " + resumeId);
+            throw new ResourceNotFoundException("Resume not found with id: " + resumeId);
         }
     }
 }
