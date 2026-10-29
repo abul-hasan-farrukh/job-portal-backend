@@ -1,15 +1,21 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.JobTagResponse;
-import com.aimbitious.job.mapper.JobTagMapper;
+import com.aimbitious.job.dto.response.JobTagResponse;
+import com.aimbitious.job.exception.JobException;
+import com.aimbitious.job.exception.ResourceNotFoundException;
+import com.aimbitious.job.mapper.JobMapper;
 import com.aimbitious.job.model.JobTag;
+import com.aimbitious.job.payload.BulkJobTagFailure;
+import com.aimbitious.job.payload.BulkJobTagRequest;
+import com.aimbitious.job.payload.BulkJobTagResponse;
 import com.aimbitious.job.payload.JobTagRequest;
 import com.aimbitious.job.repository.JobTagRepository;
 import com.aimbitious.job.service.JobTagService;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -20,83 +26,134 @@ import java.util.stream.Collectors;
 
 public class JobTagServiceImpl implements JobTagService {
 
-    private final JobTagRepository jobTagRepository;
+    private final JobTagRepository tagRepository;
+
+    // ── Create ────────────────────────────────────────────────────────────────
 
     @Override
-    public JobTagResponse createTag(JobTagRequest req) throws Exception {
-        if(jobTagRepository.existsByName(req.getName())) {
-            throw new Exception("tag name already exists");
+    @Transactional
+    public JobTagResponse createTag(JobTagRequest req) throws JobException {
+        if (tagRepository.existsByName(req.getName())) {
+            throw new JobException("Tag '" + req.getName() + "' already exists");
         }
         String slug = generateUniqueSlug(req.getName());
 
-        JobTag jobTag = JobTag.builder()
+        JobTag tag = JobTag.builder()
                 .name(req.getName())
                 .slug(slug)
                 .build();
 
-        JobTag saved = jobTagRepository.save(jobTag);
-        return JobTagMapper.toTagResponse(saved);
+        return JobMapper.toTagResponse(tagRepository.save(tag));
     }
 
     @Override
+    public BulkJobTagResponse createTagsBulk(BulkJobTagRequest req) {
+        List<JobTagResponse>   succeeded = new ArrayList<>();
+        List<BulkJobTagFailure> failed   = new ArrayList<>();
+
+        List<JobTagRequest> tags = req.getTags();
+        for (int i = 0; i < tags.size(); i++) {
+            JobTagRequest tagReq = tags.get(i);
+            try {
+                succeeded.add(createTag(tagReq));
+            } catch (Exception e) {
+                failed.add(BulkJobTagFailure.builder()
+                        .index(i)
+                        .name(tagReq.getName())
+                        .error(e.getMessage())
+                        .build());
+            }
+        }
+
+        return BulkJobTagResponse.builder()
+                .totalRequested(tags.size())
+                .totalSucceeded(succeeded.size())
+                .totalFailed(failed.size())
+                .succeeded(succeeded)
+                .failed(failed)
+                .build();
+    }
+
+    // ── Read ──────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
     public List<JobTagResponse> getAllTags() {
-        return jobTagRepository.findAll()
-                .stream().map(JobTagMapper::toTagResponse)
+        return tagRepository.findAll().stream()
+                .map(JobMapper::toTagResponse)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public JobTagResponse getById(Long id) throws Exception {
-        JobTag jobTag = getTagEntityById(id);
-        return JobTagMapper.toTagResponse(jobTag);
+    @Transactional(readOnly = true)
+    public List<JobTagResponse> searchTags(String keyword) {
+        return tagRepository.findByNameContainingIgnoreCase(keyword).stream()
+                .map(JobMapper::toTagResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public JobTagResponse updateTag(Long id, JobTagRequest req) throws Exception {
-        JobTag jobTag = getTagEntityById(id);
+    @Transactional(readOnly = true)
+    public JobTagResponse getTagById(Long id) throws ResourceNotFoundException {
+        return JobMapper.toTagResponse(getTagEntityById(id));
+    }
 
-        if(!jobTag.getName().equals(req.getName())
-        && jobTagRepository.existsByName(req.getName())){
-            throw new Exception("tag name already exist");
+    // ── Update ────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public JobTagResponse updateTag(Long id, JobTagRequest req)
+            throws ResourceNotFoundException, JobException {
+        JobTag tag = getTagEntityById(id);
+
+        if (!tag.getName().equals(req.getName()) && tagRepository.existsByName(req.getName())) {
+            throw new JobException("Tag '" + req.getName() + "' already exists");
         }
-        jobTag.setName(req.getName());
 
-        return JobTagMapper.toTagResponse(jobTagRepository.save(jobTag));
+        tag.setName(req.getName());
+        return JobMapper.toTagResponse(tagRepository.save(tag));
     }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
 
     @Override
-    public void deleteTag(Long id) throws Exception {
-        JobTag jobTag = getTagEntityById(id);
-        jobTagRepository.delete(jobTag);
+    @Transactional
+    public void deleteTag(Long id) throws ResourceNotFoundException {
+        tagRepository.delete(getTagEntityById(id));
     }
+
+    // ── Internal ──────────────────────────────────────────────────────────────
 
     @Override
-    public JobTag getTagEntityById(Long id) throws Exception {
-        return jobTagRepository.findById(id).orElseThrow(
-                () -> new Exception("job tag not found")
-        );
+    @Transactional(readOnly = true)
+    public Set<JobTag> getTagEntitiesByIds(Set<Long> ids) throws ResourceNotFoundException {
+        Set<JobTag> tags = new HashSet<>(tagRepository.findAllById(ids));
+        if (tags.size() != ids.size()) {
+            throw new ResourceNotFoundException("One or more tag IDs are invalid");
+        }
+        return tags;
     }
 
-    @Override
-    public Set<JobTag> getTagByIds(Set<Long> ids) throws Exception {
-        List<JobTag> tags = jobTagRepository.findAllById(ids);
-        return new HashSet<>(tags);
+    // ── Private utilities ─────────────────────────────────────────────────────
+
+    private JobTag getTagEntityById(Long id) throws ResourceNotFoundException {
+        return tagRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Job tag not found with id: " + id));
     }
 
-    private String generateUniqueSlug(@NotBlank(message = "company name is required") String name) {
+    private String generateUniqueSlug(String name) {
         String base = name.toLowerCase()
                 .replaceAll("[^a-z0-9\\s-]", "")
-                .trim().replaceAll("[\\s-]+", "-");
-
-        if (!jobTagRepository.existsBySlug(base)) {
+                .trim()
+                .replaceAll("[\\s-]+", "-");
+        if (!tagRepository.existsBySlug(base)) {
             return base;
         }
-
         int counter = 1;
-
-        while (jobTagRepository.existsBySlug(base + "-" + counter)) {
+        while (tagRepository.existsBySlug(base + "-" + counter)) {
             counter++;
         }
-        return base + "_" + counter;
+        return base + "-" + counter;
     }
 }
