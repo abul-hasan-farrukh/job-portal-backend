@@ -19,22 +19,28 @@ import java.time.LocalDateTime;
 public class Education {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
     @Column(nullable = false, length = 200)
     private String institutionName;
 
+    /** e.g. "Bachelor of Technology", "Master of Business Administration". */
     @Column(nullable = false, length = 150)
     private String degree;
 
+    /** e.g. "Computer Science", "Mechanical Engineering". */
     @Column(length = 150)
     private String fieldOfStudy;
 
+    /**
+     * Flexible string to handle different grading systems.
+     * e.g. "3.8 / 4.0", "First Class", "85%", "Distinction".
+     */
     @Column(length = 50)
     private String grade;
 
@@ -47,8 +53,12 @@ public class Education {
     @Builder.Default
     private Boolean isCurrentlyStudying = false;
 
+    /** Notable activities, clubs, thesis title, awards at this institution. */
+    @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(nullable = false)
+    @Builder.Default
     private Integer displayOrder = 0;
 
     @Column(nullable = false, updatable = false)
