@@ -1,10 +1,11 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.WorkExperienceResponse;
-import com.aimbitious.job.mapper.WorkExperienceMapper;
+import com.aimbitious.job.dto.response.WorkExperienceResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
+import com.aimbitious.job.mapper.ResumeMapper;
 import com.aimbitious.job.model.Resume;
 import com.aimbitious.job.model.WorkExperience;
-import com.aimbitious.job.payload.AddWorkExperience;
+import com.aimbitious.job.payload.AddWorkExperienceRequest;
 import com.aimbitious.job.repository.WorkExperienceRepository;
 import com.aimbitious.job.service.ResumeService;
 import com.aimbitious.job.service.WorkExperienceService;
@@ -19,19 +20,17 @@ import java.util.List;
 @Transactional
 public class WorkExperienceServiceImpl implements WorkExperienceService {
 
-    private final ResumeService resumeService;
     private final WorkExperienceRepository workExperienceRepository;
+    private final ResumeService resumeService;
 
     @Override
-    public WorkExperienceResponse addWorkExperience(Long resumeId,
-                                                    Long candidateId,
-                                                    AddWorkExperience req) throws Exception {
-
+    @Transactional
+    public WorkExperienceResponse addWorkExperience(Long resumeId, Long candidateId,
+                                                    AddWorkExperienceRequest req) throws ResourceNotFoundException {
         Resume resume = resumeService.getResumeEntity(resumeId);
+        assertOwner(resume, candidateId, resumeId);
 
-        assertOwner(resume, candidateId);
-
-        WorkExperience workExperience = WorkExperience.builder()
+        WorkExperience exp = WorkExperience.builder()
                 .resume(resume)
                 .companyName(req.getCompanyName())
                 .companyLogoUrl(req.getCompanyLogoUrl())
@@ -46,27 +45,24 @@ public class WorkExperienceServiceImpl implements WorkExperienceService {
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
 
-        WorkExperience saved = workExperienceRepository.save(workExperience);
-        return WorkExperienceMapper.toWorkExperienceResponse(saved);
-    }
-
-    private void assertOwner(Resume resume, Long candidateId) throws Exception {
-        if (!resume.getCandidateId().equals(candidateId)) {
-            throw new Exception("resume not found");
-        }
+        return ResumeMapper.toWorkExperienceResponse(workExperienceRepository.save(exp));
     }
 
     @Override
-    public List<WorkExperienceResponse> getWorkExperiences(Long resumeId) {
+    @Transactional(readOnly = true)
+    public List<WorkExperienceResponse> getWorkExperiences(Long resumeId) throws ResourceNotFoundException {
+        resumeService.getResumeEntity(resumeId); // verify resume exists
         return workExperienceRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
-                .stream().map(WorkExperienceMapper::toWorkExperienceResponse).toList();
+                .stream().map(ResumeMapper::toWorkExperienceResponse).toList();
     }
 
     @Override
-    public WorkExperienceResponse updateWorkExperience(Long resumeId, Long candidateId, Long workExperienceId, AddWorkExperience req) throws Exception {
-
-        WorkExperience exp = getWorkExperienceEntity(workExperienceId);
-        assertOwner(exp.getResume(), candidateId);
+    @Transactional
+    public WorkExperienceResponse updateWorkExperience(
+            Long experienceId, Long resumeId,
+            Long candidateId, AddWorkExperienceRequest req) throws ResourceNotFoundException {
+        WorkExperience exp = getExperienceEntity(experienceId, resumeId);
+        assertOwner(exp.getResume(), candidateId, resumeId);
 
         exp.setCompanyName(req.getCompanyName());
         exp.setCompanyLogoUrl(req.getCompanyLogoUrl());
@@ -77,29 +73,36 @@ public class WorkExperienceServiceImpl implements WorkExperienceService {
         exp.setEndDate(req.getEndDate());
         exp.setIsCurrentJob(Boolean.TRUE.equals(req.getIsCurrentJob()));
         exp.setDescription(req.getDescription());
+        if (req.getTechnologies() != null) exp.setTechnologies(req.getTechnologies());
+        if (req.getDisplayOrder() != null) exp.setDisplayOrder(req.getDisplayOrder());
 
-        if (req.getTechnologies() != null)
-            exp.setTechnologies(req.getTechnologies());
-
-        if (req.getDisplayOrder() != null)
-            exp.setDisplayOrder(req.getDisplayOrder());
-
-        WorkExperience saved = workExperienceRepository.save(exp);
-        return WorkExperienceMapper.toWorkExperienceResponse(saved);
+        return ResumeMapper.toWorkExperienceResponse(workExperienceRepository.save(exp));
     }
 
-
     @Override
-    public void deleteWorkExperience(Long resumeId, Long workExperienceId, Long candidateId) throws Exception {
-        WorkExperience exp = getWorkExperienceEntity(workExperienceId);
-        assertOwner(exp.getResume(), candidateId);
+    @Transactional
+    public void deleteWorkExperience(Long experienceId, Long resumeId, Long candidateId)
+            throws ResourceNotFoundException {
+        WorkExperience exp = getExperienceEntity(experienceId, resumeId);
+        assertOwner(exp.getResume(), candidateId, resumeId);
         workExperienceRepository.delete(exp);
     }
 
-    @Override
-    public WorkExperience getWorkExperienceEntity(Long workExperienceId) throws Exception {
-        return workExperienceRepository.findById(workExperienceId).orElseThrow(
-                () -> new Exception("work experience not found")
-        );
+    private WorkExperience getExperienceEntity(Long experienceId, Long resumeId)
+            throws ResourceNotFoundException {
+        WorkExperience exp = workExperienceRepository.findById(experienceId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Work experience not found with id: " + experienceId));
+        if (!exp.getResume().getId().equals(resumeId)) {
+            throw new ResourceNotFoundException("Work experience not found with id: " + experienceId);
+        }
+        return exp;
+    }
+
+    private void assertOwner(Resume resume, Long candidateId, Long resumeId)
+            throws ResourceNotFoundException {
+        if (!resume.getCandidateId().equals(candidateId)) {
+            throw new ResourceNotFoundException("Resume not found with id: " + resumeId);
+        }
     }
 }
