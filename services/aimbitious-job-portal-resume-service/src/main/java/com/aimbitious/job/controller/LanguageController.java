@@ -1,11 +1,13 @@
 package com.aimbitious.job.controller;
 
-import com.aimbitious.job.dto.ApiResponse;
-import com.aimbitious.job.dto.LanguageResponse;
+import com.aimbitious.job.dto.response.ApiResponse;
+import com.aimbitious.job.dto.response.LanguageResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.payload.AddLanguageRequest;
 import com.aimbitious.job.service.LanguageService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,20 +25,15 @@ public class LanguageController {
     public ResponseEntity<LanguageResponse> addLanguage(
             @PathVariable Long resumeId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddLanguageRequest addLanguageRequest) throws Exception {
-
-        return ResponseEntity.ok(
-                languageService.addLanguage(resumeId, candidateId, addLanguageRequest)
-        );
+            @RequestBody @Valid AddLanguageRequest req) throws ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(languageService.addLanguage(resumeId, candidateId, req));
     }
 
     @GetMapping
     public ResponseEntity<List<LanguageResponse>> getLanguages(
-            @PathVariable Long resumeId) throws Exception {
-
-        return ResponseEntity.ok(
-                languageService.getLanguages(resumeId)
-        );
+            @PathVariable Long resumeId) throws ResourceNotFoundException {
+        return ResponseEntity.ok(languageService.getLanguages(resumeId));
     }
 
     @PutMapping("/{languageId}")
@@ -44,8 +41,7 @@ public class LanguageController {
             @PathVariable Long resumeId,
             @PathVariable Long languageId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddLanguageRequest req) throws Exception {
-
+            @RequestBody @Valid AddLanguageRequest req) throws ResourceNotFoundException {
         return ResponseEntity.ok(
                 languageService.updateLanguage(languageId, resumeId, candidateId, req));
     }
@@ -54,11 +50,8 @@ public class LanguageController {
     public ResponseEntity<ApiResponse> deleteLanguage(
             @PathVariable Long resumeId,
             @PathVariable Long languageId,
-            @RequestHeader("X-User-Id") Long candidateId) throws Exception {
-
+            @RequestHeader("X-User-Id") Long candidateId) throws ResourceNotFoundException {
         languageService.deleteLanguage(languageId, resumeId, candidateId);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Language deleted successfully", true));
+        return ResponseEntity.ok(new ApiResponse("Language deleted successfully", true));
     }
 }
