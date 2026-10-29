@@ -1,22 +1,35 @@
 package com.aimbitious.job.service;
 
-import com.aimbitious.job.dto.JobCategoryResponse;
+import com.aimbitious.job.dto.response.JobCategoryResponse;
+import com.aimbitious.job.exception.JobException;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.model.JobCategory;
+import com.aimbitious.job.payload.BulkJobCategoryRequest;
+import com.aimbitious.job.payload.BulkJobCategoryResponse;
 import com.aimbitious.job.payload.JobCategoryRequest;
 
 import java.util.List;
 
 public interface JobCategoryService {
 
-    JobCategoryResponse createCategory(JobCategoryRequest req) throws Exception;
+    JobCategoryResponse createCategory(JobCategoryRequest req)
+            throws JobException, ResourceNotFoundException;
+
+    BulkJobCategoryResponse createCategoriesBulk(BulkJobCategoryRequest req);
 
     List<JobCategoryResponse> getAllCategories();
 
-    JobCategoryResponse getCategoryById(Long id) throws Exception;
+    List<JobCategoryResponse> getRootCategories();
 
-    JobCategoryResponse updateCategory(Long id, JobCategoryRequest req) throws Exception;
+    JobCategoryResponse getCategoryById(Long id) throws ResourceNotFoundException;
 
-    void deleteCategory(Long id) throws Exception;
+    JobCategoryResponse getCategoryBySlug(String slug) throws ResourceNotFoundException;
 
-    JobCategory getCategoryEntityById(Long id) throws Exception;
+    JobCategoryResponse updateCategory(Long id, JobCategoryRequest req)
+            throws ResourceNotFoundException, JobException;
+
+    void deleteCategory(Long id) throws ResourceNotFoundException;
+
+    /** Used internally. */
+    JobCategory getCategoryEntityById(Long id) throws ResourceNotFoundException;
 }
