@@ -1,11 +1,13 @@
 package com.aimbitious.job.controller;
 
-import com.aimbitious.job.dto.ApiResponse;
-import com.aimbitious.job.dto.ProjectResponse;
+import com.aimbitious.job.dto.response.ApiResponse;
+import com.aimbitious.job.dto.response.ProjectResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.payload.AddProjectRequest;
 import com.aimbitious.job.service.ProjectService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,22 +23,17 @@ public class ProjectController {
 
     @PostMapping
     public ResponseEntity<ProjectResponse> addProject(
-            @PathVariable("resumeId") Long resumeId,
+            @PathVariable Long resumeId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddProjectRequest request) throws Exception {
-
-        return ResponseEntity.ok(
-                projectService.addProject(resumeId, candidateId, request)
-        );
+            @RequestBody @Valid AddProjectRequest req) throws ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(projectService.addProject(resumeId, candidateId, req));
     }
 
     @GetMapping
     public ResponseEntity<List<ProjectResponse>> getProjects(
-            @PathVariable Long resumeId) throws Exception {
-
-        return ResponseEntity.ok(
-                projectService.getAllProjects(resumeId)
-        );
+            @PathVariable Long resumeId) throws ResourceNotFoundException {
+        return ResponseEntity.ok(projectService.getProjects(resumeId));
     }
 
     @PutMapping("/{projectId}")
@@ -44,8 +41,7 @@ public class ProjectController {
             @PathVariable Long resumeId,
             @PathVariable Long projectId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddProjectRequest req) throws Exception {
-
+            @RequestBody @Valid AddProjectRequest req) throws ResourceNotFoundException {
         return ResponseEntity.ok(
                 projectService.updateProject(projectId, resumeId, candidateId, req));
     }
@@ -54,11 +50,8 @@ public class ProjectController {
     public ResponseEntity<ApiResponse> deleteProject(
             @PathVariable Long resumeId,
             @PathVariable Long projectId,
-            @RequestHeader("X-User-Id") Long candidateId) throws Exception {
-
+            @RequestHeader("X-User-Id") Long candidateId) throws ResourceNotFoundException {
         projectService.deleteProject(projectId, resumeId, candidateId);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Project deleted successfully", true));
+        return ResponseEntity.ok(new ApiResponse("Project deleted successfully", true));
     }
 }
