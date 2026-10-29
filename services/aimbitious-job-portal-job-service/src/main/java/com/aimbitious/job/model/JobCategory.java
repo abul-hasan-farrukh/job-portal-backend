@@ -9,6 +9,11 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Hierarchical master-data category (e.g. "Technology > Web Development").
+ * Managed by admins; not created by end-users.
+ */
+
 @Entity
 @Getter
 @Setter
@@ -20,25 +25,35 @@ import java.util.List;
 public class JobCategory {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, length = 100)
     private String name;
 
-    @Column(unique = true)
+    /** URL-friendly identifier, auto-derived from name. */
+    @Column(unique = true, length = 120)
     private String slug;
 
+    @Column(length = 500)
     private String description;
 
     private String iconUrl;
 
+    /**
+     * Self-referential parent for category hierarchy.
+     * Null means this is a root/top-level category.
+     */
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
     private JobCategory parent;
 
-    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = false, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<JobCategory> subCategories = new ArrayList<>();
 
+    @Column(nullable = false)
+    @Builder.Default
     private Boolean active = true;
 
     @Column(nullable = false, updatable = false)
