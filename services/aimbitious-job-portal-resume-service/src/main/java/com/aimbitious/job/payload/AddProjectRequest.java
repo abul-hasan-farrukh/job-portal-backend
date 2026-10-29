@@ -2,10 +2,7 @@ package com.aimbitious.job.payload;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -14,7 +11,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-
+@Getter
+@Setter
 public class AddProjectRequest {
 
     @NotBlank(message = "project title is required")
