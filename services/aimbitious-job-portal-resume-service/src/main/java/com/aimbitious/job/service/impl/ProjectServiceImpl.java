@@ -1,6 +1,7 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.ProjectResponse;
+import com.aimbitious.job.dto.response.ProjectResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.mapper.ResumeMapper;
 import com.aimbitious.job.model.Project;
 import com.aimbitious.job.model.Resume;
@@ -10,6 +11,7 @@ import com.aimbitious.job.service.ProjectService;
 import com.aimbitious.job.service.ResumeService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,14 +19,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ProjectServiceImpl implements ProjectService {
 
-    private ResumeService resumeService;
     private final ProjectRepository projectRepository;
-
+    private final ResumeService resumeService;
 
     @Override
-    public ProjectResponse addProject(Long resumeId, Long candidateId, AddProjectRequest req) throws Exception {
+    @Transactional
+    public ProjectResponse addProject(Long resumeId, Long candidateId, AddProjectRequest req)
+            throws ResourceNotFoundException {
         Resume resume = resumeService.getResumeEntity(resumeId);
-        assertOwner(resume, candidateId);
+        assertOwner(resume, candidateId, resumeId);
 
         Project project = Project.builder()
                 .resume(resume)
@@ -39,55 +42,60 @@ public class ProjectServiceImpl implements ProjectService {
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
 
-        Project savedProject = projectRepository.save(project);
-        return ResumeMapper.toProjectResponse(savedProject);
+        return ResumeMapper.toProjectResponse(projectRepository.save(project));
     }
 
     @Override
-    public List<ProjectResponse> getAllProjects(Long resumeId) {
+    @Transactional(readOnly = true)
+    public List<ProjectResponse> getProjects(Long resumeId) throws ResourceNotFoundException {
+        resumeService.getResumeEntity(resumeId);
         return projectRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
                 .stream().map(ResumeMapper::toProjectResponse).toList();
     }
 
     @Override
-    public ProjectResponse updateProject(Long projectId, Long resumeId, Long candidateId, AddProjectRequest req) throws Exception {
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new Exception("project does not exist")
-        );
-
-        assertOwner(project.getResume(), candidateId);
+    @Transactional
+    public ProjectResponse updateProject(Long projectId, Long resumeId, Long candidateId,
+                                         AddProjectRequest req) throws ResourceNotFoundException {
+        Project project = getProjectEntity(projectId, resumeId);
+        assertOwner(project.getResume(), candidateId, resumeId);
 
         project.setTitle(req.getTitle());
         project.setDescription(req.getDescription());
-
-        if (req.getTechnologies() != null)
-            project.setTechnologies(req.getTechnologies());
-
+        if (req.getTechnologies() != null) project.setTechnologies(req.getTechnologies());
         project.setProjectUrl(req.getProjectUrl());
         project.setSourceCodeUrl(req.getSourceCodeUrl());
         project.setStartDate(req.getStartDate());
         project.setEndDate(req.getEndDate());
         project.setIsOngoing(Boolean.TRUE.equals(req.getIsOngoing()));
+        if (req.getDisplayOrder() != null) project.setDisplayOrder(req.getDisplayOrder());
 
-        if (req.getDisplayOrder() != null)
-            project.setDisplayOrder(req.getDisplayOrder());
-
-
-        return ResumeMapper.toProjectResponse((projectRepository.save(project)));
+        return ResumeMapper.toProjectResponse(projectRepository.save(project));
     }
 
     @Override
-    public void deleteProject(Long projectId, Long resumeId, Long candidateId) throws Exception {
-        Project project = projectRepository.findById(projectId).orElseThrow(
-                () -> new Exception("project does not exist")
-        );
-        assertOwner(project.getResume(), candidateId);
+    @Transactional
+    public void deleteProject(Long projectId, Long resumeId, Long candidateId)
+            throws ResourceNotFoundException {
+        Project project = getProjectEntity(projectId, resumeId);
+        assertOwner(project.getResume(), candidateId, resumeId);
         projectRepository.delete(project);
     }
 
-    private void assertOwner(Resume resume, Long candidateId) throws Exception {
+    private Project getProjectEntity(Long projectId, Long resumeId) throws ResourceNotFoundException {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + projectId));
+        if (!project.getResume().getId().equals(resumeId)) {
+            throw new ResourceNotFoundException("Project not found with id: " + projectId);
+        }
+        return project;
+    }
+
+    private void assertOwner(Resume resume, Long candidateId, Long resumeId)
+            throws ResourceNotFoundException {
         if (!resume.getCandidateId().equals(candidateId)) {
-            throw new Exception("resume not found");
+            throw new ResourceNotFoundException("Resume not found with id: " + resumeId);
         }
     }
 }
