@@ -1,12 +1,14 @@
 package com.aimbitious.job.controller;
 
 
-import com.aimbitious.job.dto.ApiResponse;
-import com.aimbitious.job.dto.WorkExperienceResponse;
-import com.aimbitious.job.payload.AddWorkExperience;
+import com.aimbitious.job.dto.response.ApiResponse;
+import com.aimbitious.job.dto.response.WorkExperienceResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
+import com.aimbitious.job.payload.AddWorkExperienceRequest;
 import com.aimbitious.job.service.WorkExperienceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,19 +25,15 @@ public class WorkExperienceController {
     public ResponseEntity<WorkExperienceResponse> addWorkExperience(
             @PathVariable Long resumeId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddWorkExperience req
-    ) throws Exception {
-        return ResponseEntity.ok(
-                workExperienceService.addWorkExperience(resumeId, candidateId, req)
-        );
+            @RequestBody @Valid AddWorkExperienceRequest req) throws ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(workExperienceService.addWorkExperience(resumeId, candidateId, req));
     }
 
     @GetMapping
     public ResponseEntity<List<WorkExperienceResponse>> getWorkExperiences(
-            @PathVariable Long resumeId) throws Exception {
-        return ResponseEntity.ok(
-                workExperienceService.getWorkExperiences(resumeId)
-        );
+            @PathVariable Long resumeId) throws ResourceNotFoundException {
+        return ResponseEntity.ok(workExperienceService.getWorkExperiences(resumeId));
     }
 
     @PutMapping("/{experienceId}")
@@ -43,22 +41,17 @@ public class WorkExperienceController {
             @PathVariable Long resumeId,
             @PathVariable Long experienceId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddWorkExperience req) throws Exception {
-
+            @RequestBody @Valid AddWorkExperienceRequest req) throws ResourceNotFoundException {
         return ResponseEntity.ok(
-                workExperienceService.updateWorkExperience(
-                        resumeId, candidateId, experienceId, req));
+                workExperienceService.updateWorkExperience(experienceId, resumeId, candidateId, req));
     }
 
     @DeleteMapping("/{experienceId}")
     public ResponseEntity<ApiResponse> deleteWorkExperience(
             @PathVariable Long resumeId,
             @PathVariable Long experienceId,
-            @RequestHeader("X-User-Id") Long candidateId) throws Exception {
-
-        workExperienceService.deleteWorkExperience( resumeId, experienceId, candidateId);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Work experience deleted successfully", true));
+            @RequestHeader("X-User-Id") Long candidateId) throws ResourceNotFoundException {
+        workExperienceService.deleteWorkExperience(experienceId, resumeId, candidateId);
+        return ResponseEntity.ok(new ApiResponse("Work experience deleted successfully", true));
     }
 }
