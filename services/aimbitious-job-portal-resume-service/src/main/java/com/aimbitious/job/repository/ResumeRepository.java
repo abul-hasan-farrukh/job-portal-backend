@@ -8,7 +8,11 @@ import java.util.Optional;
 
 public interface ResumeRepository extends JpaRepository<Resume, Long> {
 
-    List<Resume> findByCandidateIdAndIsActiveTrue(Long candidateId);
+    List<Resume> findByCandidateIdAndActiveTrue(Long candidateId);
 
-    Optional<Resume> findByCandidateIdAndIsDefaultTrue(Long resumeId);
+    Optional<Resume> findByCandidateIdAndIsDefaultTrue(Long candidateId);
+
+    boolean existsByCandidateIdAndIsDefaultTrue(Long candidateId);
+
+    long countByCandidateIdAndActiveTrue(Long candidateId);
 }
