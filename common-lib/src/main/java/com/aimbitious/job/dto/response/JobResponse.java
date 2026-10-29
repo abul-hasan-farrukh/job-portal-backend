@@ -1,9 +1,6 @@
-package com.aimbitious.job.dto;
+package com.aimbitious.job.dto.response;
 
-import com.aimbitious.job.domain.ExperienceLevel;
-import com.aimbitious.job.domain.JobStatus;
-import com.aimbitious.job.domain.JobType;
-import com.aimbitious.job.domain.WorkMode;
+import com.aimbitious.job.domain.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -11,6 +8,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+/**
+ * Full job detail response — used on the job detail page.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class JobResponse {
     private String responsibilities;
     private String benefits;
 
-    private CompanyResponse company;
+    private CompanySummaryResponse company;
     private Long employerId;
 
     private JobCategoryResponse category;
@@ -39,9 +39,13 @@ public class JobResponse {
     private String country;
     private String zipCode;
 
-    //Salary
+    // Salary
     private BigDecimal minSalary;
     private BigDecimal maxSalary;
+    private String currency;
+    private SalaryPeriod salaryPeriod;
+    private Boolean salaryNegotiable;
+    private Boolean salaryDisclosed;
 
     // Classification
     private JobType jobType;
@@ -54,6 +58,10 @@ public class JobResponse {
     private LocalDate applicationDeadline;
     private LocalDate expiresAt;
     private Boolean active;
+
+    // Analytics
+    private Long viewCount;
+    private Long applicationCount;
 
     // Timestamps
     private LocalDateTime createdAt;
