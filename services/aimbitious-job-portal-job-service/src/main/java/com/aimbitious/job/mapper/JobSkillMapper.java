@@ -1,6 +1,6 @@
 package com.aimbitious.job.mapper;
 
-import com.aimbitious.job.dto.JobSkillResponse;
+import com.aimbitious.job.dto.response.JobSkillResponse;
 import com.aimbitious.job.model.JobSkill;
 
 public class JobSkillMapper {
