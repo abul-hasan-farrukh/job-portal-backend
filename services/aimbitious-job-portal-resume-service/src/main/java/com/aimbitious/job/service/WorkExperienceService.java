@@ -1,21 +1,27 @@
 package com.aimbitious.job.service;
 
-import com.aimbitious.job.dto.WorkExperienceResponse;
+import com.aimbitious.job.dto.response.WorkExperienceResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.model.WorkExperience;
-import com.aimbitious.job.payload.AddWorkExperience;
+import com.aimbitious.job.payload.AddWorkExperienceRequest;
 
 import java.util.List;
 
 public interface WorkExperienceService {
 
-    WorkExperienceResponse addWorkExperience(Long resumeId, Long candidateId, AddWorkExperience req) throws Exception;
+    WorkExperienceResponse addWorkExperience(Long resumeId,
+                                             Long candidateId,
+                                             AddWorkExperienceRequest req)
+            throws ResourceNotFoundException;
 
-    List<WorkExperienceResponse> getWorkExperiences(Long resumeId);
+    List<WorkExperienceResponse> getWorkExperiences(Long resumeId) throws ResourceNotFoundException;
 
-    WorkExperienceResponse updateWorkExperience(Long resumeId, Long candidateId, Long workExperienceId, AddWorkExperience req) throws Exception;
+    WorkExperienceResponse updateWorkExperience(
+            Long experienceId, Long resumeId, Long candidateId,
+            AddWorkExperienceRequest req) throws ResourceNotFoundException;
 
-    void deleteWorkExperience(Long resumeId, Long workExperienceId, Long candidateId) throws Exception;
-
-    WorkExperience getWorkExperienceEntity(Long workExperienceId) throws Exception;
+    void deleteWorkExperience(Long experienceId, Long resumeId,
+                              Long candidateId)
+            throws ResourceNotFoundException;
 }
 
