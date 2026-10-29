@@ -1,6 +1,6 @@
 package com.aimbitious.job.mapper;
 
-import com.aimbitious.job.dto.JobCategoryResponse;
+import com.aimbitious.job.dto.response.JobCategoryResponse;
 import com.aimbitious.job.model.JobCategory;
 
 import java.util.List;
