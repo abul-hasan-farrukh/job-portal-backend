@@ -1,43 +1,26 @@
 package com.aimbitious.job.mapper;
 
-import com.aimbitious.job.dto.*;
+import com.aimbitious.job.domain.ParseStatus;
+import com.aimbitious.job.dto.response.*;
 import com.aimbitious.job.model.*;
+import com.aimbitious.job.dto.response.ResumeResponse;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ResumeMapper {
 
-    public static PersonalInfoResponse toPersonalInfoResponse(PersonalInfo personalInfo) {
-
-        if(personalInfo == null ) return null;
-
-        return PersonalInfoResponse.builder()
-                .firstName(personalInfo.getFirstName())
-                .lastName(personalInfo.getLastName())
-                .email(personalInfo.getEmail())
-                .phone(personalInfo.getPhone())
-                .headline(personalInfo.getHeadline())
-                .country(personalInfo.getCountry())
-                .profileImage(personalInfo.getProfileImage())
-                .city(personalInfo.getCity())
-                .githubUrl(personalInfo.getGithubUrl())
-                .linkedinUrl(personalInfo.getLinkedinUrl())
-                .portfolioUrl(personalInfo.getPortfolioUrl())
-                .websiteUrl(personalInfo.getWebsiteUrl())
-                .build();
-    }
+    private ResumeMapper() {}
 
     public static ResumeResponse toResponse(Resume resume,
-                                            List<WorkExperienceResponse> workExperiences,
-                                            List<EducationResponse> educationResponses,
-                                            List<ResumeSkillResponse> resumeSkillResponses,
-                                            List<ProjectResponse> projectResponses,
-                                            List<LanguageResponse> languageResponses,
-                                            List<CertificationResponse> certificationResponses,
-                                            List<AwardResponse> awardResponses) {
-
+                                            List<WorkExperience> workExperiences,
+                                            List<Education> educations,
+                                            List<ResumeSkill> skills,
+                                            List<Project> projects,
+                                            List<Certification> certifications,
+                                            List<Award> awards,
+                                            List<Language> languages) {
         if (resume == null) return null;
-
         return ResumeResponse.builder()
                 .id(resume.getId())
                 .candidateId(resume.getCandidateId())
@@ -45,39 +28,53 @@ public class ResumeMapper {
                 .template(resume.getTemplate())
                 .visibility(resume.getVisibility())
                 .isDefault(resume.getIsDefault())
-                .personalInfo(ResumeMapper.toPersonalInfoResponse(resume.getPersonalInfo()))
+                .personalInfo(resume.getPersonalInfo())
                 .summary(resume.getSummary())
+                .uploadedFileUrl(resume.getUploadedFileUrl())
+                .uploadedFileName(resume.getUploadedFileName())
                 .completionScore(resume.getCompletionScore())
+                .active(resume.getActive())
+                .lastViewedAt(resume.getLastViewedAt())
                 .createdAt(resume.getCreatedAt())
                 .updatedAt(resume.getUpdatedAt())
-                .workExperiences(workExperiences)
-                .educations(educationResponses)
-                .skills(resumeSkillResponses)
-                .projects(projectResponses)
-                .languages(languageResponses)
-                .certifications(certificationResponses)
-                .awards(awardResponses)
+                .workExperiences(workExperiences == null ? Collections.emptyList()
+                        : workExperiences.stream().map(ResumeMapper::toWorkExperienceResponse).toList())
+                .educations(educations == null ? Collections.emptyList()
+                        : educations.stream().map(ResumeMapper::toEducationResponse).toList())
+                .skills(skills == null ? Collections.emptyList()
+                        : skills.stream().map(ResumeMapper::toSkillResponse).toList())
+                .projects(projects == null ? Collections.emptyList()
+                        : projects.stream().map(ResumeMapper::toProjectResponse).toList())
+                .certifications(certifications == null ? Collections.emptyList()
+                        : certifications.stream().map(ResumeMapper::toCertificationResponse).toList())
+                .awards(awards == null ? Collections.emptyList()
+                        : awards.stream().map(ResumeMapper::toAwardResponse).toList())
+                .languages(languages == null ? Collections.emptyList()
+                        : languages.stream().map(ResumeMapper::toLanguageResponse).toList())
                 .build();
     }
 
-    //mapper for resumeskill
-    public static ResumeSkillResponse toSkillResponse(ResumeSkill skill) {
-        if (skill == null) return null;
-
-        return ResumeSkillResponse.builder()
-                .id(skill.getId())
-                .skillName(skill.getSkillName())
-                .proficiencyLevel(skill.getProficiencyLevel())
-                .yearsOfExperience(skill.getYearsOfExperience())
-                .displayOrder(skill.getDisplayOrder())
+    public static WorkExperienceResponse toWorkExperienceResponse(
+            WorkExperience exp) {
+        if (exp == null) return null;
+        return WorkExperienceResponse.builder()
+                .id(exp.getId())
+                .companyName(exp.getCompanyName())
+                .companyLogoUrl(exp.getCompanyLogoUrl())
+                .jobTitle(exp.getJobTitle())
+                .employmentType(exp.getEmploymentType())
+                .location(exp.getLocation())
+                .startDate(exp.getStartDate())
+                .endDate(exp.getEndDate())
+                .isCurrentJob(exp.getIsCurrentJob())
+                .description(exp.getDescription())
+                .technologies(exp.getTechnologies())
+                .displayOrder(exp.getDisplayOrder())
                 .build();
     }
 
-    //mapper for education
     public static EducationResponse toEducationResponse(Education edu) {
-
         if (edu == null) return null;
-
         return EducationResponse.builder()
                 .id(edu.getId())
                 .institutionName(edu.getInstitutionName())
@@ -92,9 +89,19 @@ public class ResumeMapper {
                 .build();
     }
 
+    public static ResumeSkillResponse toSkillResponse(ResumeSkill skill) {
+        if (skill == null) return null;
+        return ResumeSkillResponse.builder()
+                .id(skill.getId())
+                .skillName(skill.getSkillName())
+                .proficiencyLevel(skill.getProficiencyLevel())
+                .yearsOfExperience(skill.getYearsOfExperience())
+                .displayOrder(skill.getDisplayOrder())
+                .build();
+    }
+
     public static ProjectResponse toProjectResponse(Project project) {
         if (project == null) return null;
-
         return ProjectResponse.builder()
                 .id(project.getId())
                 .title(project.getTitle())
@@ -106,17 +113,6 @@ public class ResumeMapper {
                 .endDate(project.getEndDate())
                 .isOngoing(project.getIsOngoing())
                 .displayOrder(project.getDisplayOrder())
-                .build();
-    }
-
-    public static LanguageResponse toLanguageResponse(Language lang) {
-        if (lang == null) return null;
-
-        return LanguageResponse.builder()
-                .id(lang.getId())
-                .languageName(lang.getLanguageName())
-                .proficiency(lang.getProficiency())
-                .displayOrder(lang.getDisplayOrder())
                 .build();
     }
 
@@ -143,6 +139,32 @@ public class ResumeMapper {
                 .awardDate(award.getAwardDate())
                 .description(award.getDescription())
                 .displayOrder(award.getDisplayOrder())
+                .build();
+    }
+
+    public static LanguageResponse toLanguageResponse(Language lang) {
+        if (lang == null) return null;
+        return LanguageResponse.builder()
+                .id(lang.getId())
+                .languageName(lang.getLanguageName())
+                .proficiency(lang.getProficiency())
+                .displayOrder(lang.getDisplayOrder())
+                .build();
+    }
+
+    public static ResumeParseJobResponse toParseJobResponse(ResumeParseJob job) {
+        if (job == null) return null;
+        return ResumeParseJobResponse.builder()
+                .id(job.getId())
+                .candidateId(job.getCandidateId())
+                .resumeId(job.getResumeId())
+                .originalFileName(job.getOriginalFileName())
+                .fileType(job.getFileType())
+                .status(job.getStatus())
+                .parsedData(job.getStatus() == ParseStatus.COMPLETED ? job.getParsedData() : null)
+                .failureReason(job.getFailureReason())
+                .createdAt(job.getCreatedAt())
+                .updatedAt(job.getUpdatedAt())
                 .build();
     }
 }
