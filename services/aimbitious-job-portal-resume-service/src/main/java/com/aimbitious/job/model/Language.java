@@ -18,16 +18,19 @@ import java.time.LocalDateTime;
 public class Language {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    @Column(nullable = false)
+    /** e.g. "English", "Hindi", "Spanish". */
+    @Column(nullable = false, length = 80)
     private String languageName;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LanguageProficiency proficiency;
 
     @Column(nullable = false)
