@@ -22,23 +22,32 @@ import java.util.List;
 public class Project {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "resume_id", nullable = false)
     private Resume resume;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "project_technologies",
+            joinColumns = @JoinColumn(name = "project_id")
+    )
+    @Column(name = "technology")
+    @Builder.Default
     private List<String> technologies = new ArrayList<>();
 
+    /** Live demo URL. */
     private String projectUrl;
 
+    /** GitHub / GitLab source link. */
     private String sourceCodeUrl;
 
     private LocalDate startDate;
