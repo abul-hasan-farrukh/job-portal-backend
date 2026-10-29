@@ -1,12 +1,14 @@
 package com.aimbitious.job.controller;
 
 
-import com.aimbitious.job.dto.ApiResponse;
-import com.aimbitious.job.dto.EducationResponse;
+import com.aimbitious.job.dto.response.ApiResponse;
+import com.aimbitious.job.dto.response.EducationResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.payload.AddEducationRequest;
 import com.aimbitious.job.service.EducationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,22 +23,17 @@ public class EducationController {
 
     @PostMapping
     public ResponseEntity<EducationResponse> addEducation(
-            @PathVariable("resumeId") Long resumeId,
+            @PathVariable Long resumeId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddEducationRequest req
-    ) throws Exception {
-
-        return ResponseEntity.ok(
-                educationService.addEducation(resumeId, candidateId, req)
-        );
+            @RequestBody @Valid AddEducationRequest req) throws ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(educationService.addEducation(resumeId, candidateId, req));
     }
 
     @GetMapping
     public ResponseEntity<List<EducationResponse>> getEducations(
-            @PathVariable Long resumeId) throws Exception {
-        return ResponseEntity.ok(
-                educationService.getEducations(resumeId)
-        );
+            @PathVariable Long resumeId) throws ResourceNotFoundException {
+        return ResponseEntity.ok(educationService.getEducations(resumeId));
     }
 
     @PutMapping("/{educationId}")
@@ -44,8 +41,7 @@ public class EducationController {
             @PathVariable Long resumeId,
             @PathVariable Long educationId,
             @RequestHeader("X-User-Id") Long candidateId,
-            @RequestBody @Valid AddEducationRequest req) throws Exception {
-
+            @RequestBody @Valid AddEducationRequest req) throws ResourceNotFoundException {
         return ResponseEntity.ok(
                 educationService.updateEducation(educationId, resumeId, candidateId, req));
     }
@@ -54,11 +50,8 @@ public class EducationController {
     public ResponseEntity<ApiResponse> deleteEducation(
             @PathVariable Long resumeId,
             @PathVariable Long educationId,
-            @RequestHeader("X-User-Id") Long candidateId) throws Exception {
-
+            @RequestHeader("X-User-Id") Long candidateId) throws ResourceNotFoundException {
         educationService.deleteEducation(educationId, resumeId, candidateId);
-
-        return ResponseEntity.ok(
-                new ApiResponse("Education deleted successfully", true));
+        return ResponseEntity.ok(new ApiResponse("Education deleted successfully", true));
     }
 }
