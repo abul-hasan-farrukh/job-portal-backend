@@ -1,4 +1,4 @@
-package com.aimbitious.job.dto;
+package com.aimbitious.job.dto.response;
 
 import com.aimbitious.job.domain.SocialPlatform;
 import lombok.*;
