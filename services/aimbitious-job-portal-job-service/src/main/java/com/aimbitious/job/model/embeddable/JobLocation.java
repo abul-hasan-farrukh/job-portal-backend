@@ -18,4 +18,10 @@ public class JobLocation {
     private String country;
     private String state;
     private String zipCode;
+
+    /**
+     * Latitude/longitude for geo-based search support (optional).
+     */
+    private Double latitude;
+    private Double longitude;
 }
