@@ -1,6 +1,6 @@
 package com.aimbitious.job.mapper;
 
-import com.aimbitious.job.dto.JobTagResponse;
+import com.aimbitious.job.dto.response.JobTagResponse;
 import com.aimbitious.job.model.JobTag;
 
 public class JobTagMapper {
