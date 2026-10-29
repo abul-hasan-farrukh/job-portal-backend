@@ -1,6 +1,7 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.ResumeSkillResponse;
+import com.aimbitious.job.dto.response.ResumeSkillResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.mapper.ResumeMapper;
 import com.aimbitious.job.model.Resume;
 import com.aimbitious.job.model.ResumeSkill;
@@ -10,6 +11,7 @@ import com.aimbitious.job.service.ResumeService;
 import com.aimbitious.job.service.ResumeSkillService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,14 +19,15 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ResumeSkillServiceImpl implements ResumeSkillService {
 
-    private final ResumeSkillRepository resumeSkillRepository;
+    private final ResumeSkillRepository skillRepository;
     private final ResumeService resumeService;
 
     @Override
-    public ResumeSkillResponse addSkill(Long resumeId, Long candidateId, AddResumeSkillRequest req) throws Exception {
+    @Transactional
+    public ResumeSkillResponse addSkill(Long resumeId, Long candidateId, AddResumeSkillRequest req)
+            throws ResourceNotFoundException {
         Resume resume = resumeService.getResumeEntity(resumeId);
-
-        assertOwner(resume, candidateId);
+        assertOwner(resume, candidateId, resumeId);
 
         ResumeSkill skill = ResumeSkill.builder()
                 .resume(resume)
@@ -34,48 +37,54 @@ public class ResumeSkillServiceImpl implements ResumeSkillService {
                 .displayOrder(req.getDisplayOrder() != null ? req.getDisplayOrder() : 0)
                 .build();
 
-        ResumeSkill savedSkill = resumeSkillRepository.save(skill);
-        return ResumeMapper.toSkillResponse(savedSkill);
+        return ResumeMapper.toSkillResponse(skillRepository.save(skill));
     }
 
-
-
     @Override
-    public List<ResumeSkillResponse> getSkills(Long resumeId) {
-        return resumeSkillRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
+    @Transactional(readOnly = true)
+    public List<ResumeSkillResponse> getSkills(Long resumeId) throws ResourceNotFoundException {
+        resumeService.getResumeEntity(resumeId);
+        return skillRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
                 .stream().map(ResumeMapper::toSkillResponse).toList();
     }
 
     @Override
-    public ResumeSkillResponse updateSkill(Long skillId, Long resumeId, Long candidateId, AddResumeSkillRequest req) throws Exception {
-        ResumeSkill skill = resumeSkillRepository.findById(skillId).orElseThrow(
-                () -> new Exception("Skill not found")
-        );
-
-        assertOwner(skill.getResume(), candidateId);
+    @Transactional
+    public ResumeSkillResponse updateSkill(Long skillId, Long resumeId, Long candidateId,
+                                           AddResumeSkillRequest req) throws ResourceNotFoundException {
+        ResumeSkill skill = getSkillEntity(skillId, resumeId);
+        assertOwner(skill.getResume(), candidateId, resumeId);
 
         skill.setSkillName(req.getSkillName());
         skill.setProficiencyLevel(req.getProficiencyLevel());
         skill.setYearsOfExperience(req.getYearsOfExperience());
+        if (req.getDisplayOrder() != null) skill.setDisplayOrder(req.getDisplayOrder());
 
-        if (req.getDisplayOrder() != null)
-            skill.setDisplayOrder(req.getDisplayOrder());
-
-        return ResumeMapper.toSkillResponse(resumeSkillRepository.save(skill));
+        return ResumeMapper.toSkillResponse(skillRepository.save(skill));
     }
 
     @Override
-    public void deleteSkill(Long skillId, Long resumeId, Long candidateId) throws Exception {
-        ResumeSkill skill = resumeSkillRepository.findById(skillId).orElseThrow(
-                () -> new Exception("Skill not found")
-        );
-        assertOwner(skill.getResume(), candidateId);
-        resumeSkillRepository.delete(skill);
+    @Transactional
+    public void deleteSkill(Long skillId, Long resumeId, Long candidateId)
+            throws ResourceNotFoundException {
+        ResumeSkill skill = getSkillEntity(skillId, resumeId);
+        assertOwner(skill.getResume(), candidateId, resumeId);
+        skillRepository.delete(skill);
     }
 
-    private void assertOwner(Resume resume, Long candidateId) throws Exception {
+    private ResumeSkill getSkillEntity(Long skillId, Long resumeId) throws ResourceNotFoundException {
+        ResumeSkill skill = skillRepository.findById(skillId)
+                .orElseThrow(() -> new ResourceNotFoundException("Skill not found with id: " + skillId));
+        if (!skill.getResume().getId().equals(resumeId)) {
+            throw new ResourceNotFoundException("Skill not found with id: " + skillId);
+        }
+        return skill;
+    }
+
+    private void assertOwner(Resume resume, Long candidateId, Long resumeId)
+            throws ResourceNotFoundException {
         if (!resume.getCandidateId().equals(candidateId)) {
-            throw new Exception("resume not found");
+            throw new ResourceNotFoundException("Resume not found with id: " + resumeId);
         }
     }
 }
