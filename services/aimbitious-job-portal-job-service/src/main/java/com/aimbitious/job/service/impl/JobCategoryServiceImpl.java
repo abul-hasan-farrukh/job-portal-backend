@@ -1,15 +1,21 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.JobCategoryResponse;
-import com.aimbitious.job.mapper.JobCategoryMapper;
+import com.aimbitious.job.dto.response.JobCategoryResponse;
+import com.aimbitious.job.exception.JobException;
+import com.aimbitious.job.exception.ResourceNotFoundException;
+import com.aimbitious.job.mapper.JobMapper;
 import com.aimbitious.job.model.JobCategory;
+import com.aimbitious.job.payload.BulkJobCategoryFailure;
+import com.aimbitious.job.payload.BulkJobCategoryRequest;
+import com.aimbitious.job.payload.BulkJobCategoryResponse;
 import com.aimbitious.job.payload.JobCategoryRequest;
 import com.aimbitious.job.repository.JobCategoryRepository;
 import com.aimbitious.job.service.JobCategoryService;
-import jakarta.validation.constraints.NotBlank;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,13 +23,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JobCategoryServiceImpl implements JobCategoryService {
 
-    private final JobCategoryRepository jobCategoryRepository;
+    private final JobCategoryRepository categoryRepository;
+
+    // ── Create ────────────────────────────────────────────────────────────────
 
     @Override
-    public JobCategoryResponse createCategory(JobCategoryRequest req) throws Exception {
-
-        if (jobCategoryRepository.existsByName(req.getName())) {
-            throw new Exception("Category name already exist, choose different name");
+    @Transactional
+    public JobCategoryResponse createCategory(JobCategoryRequest req)
+            throws JobException, ResourceNotFoundException {
+        if (categoryRepository.existsByName(req.getName())) {
+            throw new JobException("Category with name '" + req.getName() + "' already exists");
         }
 
         JobCategory parent = null;
@@ -39,39 +48,91 @@ public class JobCategoryServiceImpl implements JobCategoryService {
                 .description(req.getDescription())
                 .iconUrl(req.getIconUrl())
                 .parent(parent)
-                .active(true)
                 .build();
-        JobCategory saved = jobCategoryRepository.save(category);
-        return JobCategoryMapper.toJobCategoryResponse(saved, true);
+
+        return JobMapper.toCategoryResponse(categoryRepository.save(category),
+                true);
     }
 
     @Override
+    public BulkJobCategoryResponse createCategoriesBulk(BulkJobCategoryRequest req) {
+        List<JobCategoryResponse>    succeeded = new ArrayList<>();
+        List<BulkJobCategoryFailure> failed    = new ArrayList<>();
+
+        List<JobCategoryRequest> categories = req.getCategories();
+        for (int i = 0; i < categories.size(); i++) {
+            JobCategoryRequest catReq = categories.get(i);
+            try {
+                succeeded.add(createCategory(catReq));
+            } catch (Exception e) {
+                failed.add(BulkJobCategoryFailure.builder()
+                        .index(i)
+                        .name(catReq.getName())
+                        .error(e.getMessage())
+                        .build());
+            }
+        }
+
+        return BulkJobCategoryResponse.builder()
+                .totalRequested(categories.size())
+                .totalSucceeded(succeeded.size())
+                .totalFailed(failed.size())
+                .succeeded(succeeded)
+                .failed(failed)
+                .build();
+    }
+
+    // ── Read ──────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
     public List<JobCategoryResponse> getAllCategories() {
-        return jobCategoryRepository.findByActiveTrue().stream()
-                .map(c -> JobCategoryMapper.toJobCategoryResponse(c, false))
+        return categoryRepository.findByActiveTrue().stream()
+                .map(c -> JobMapper.toCategoryResponse(c, false))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public JobCategoryResponse getCategoryById(Long id) throws Exception {
-        JobCategory jobCategory = getCategoryEntityById(id);
-        return JobCategoryMapper.toJobCategoryResponse(jobCategory, true);
+    @Transactional(readOnly = true)
+    public List<JobCategoryResponse> getRootCategories() {
+        return categoryRepository.findByParentIsNullAndActiveTrue().stream()
+                .map(c -> JobMapper.toCategoryResponse(c, true))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public JobCategoryResponse updateCategory(Long id, JobCategoryRequest req) throws Exception {
+    @Transactional(readOnly = true)
+    public JobCategoryResponse getCategoryById(Long id) throws ResourceNotFoundException {
+        return JobMapper.toCategoryResponse(
+                getCategoryEntityById(id), true);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public JobCategoryResponse getCategoryBySlug(String slug) throws ResourceNotFoundException {
+        JobCategory category = categoryRepository.findBySlug(slug)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Category not found with slug: " + slug));
+        return JobMapper.toCategoryResponse(category, true);
+    }
+
+    // ── Update ────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public JobCategoryResponse updateCategory(Long id, JobCategoryRequest req)
+            throws ResourceNotFoundException, JobException {
         JobCategory category = getCategoryEntityById(id);
 
-        if (!category.getName().equals(req.getName()) &&
-                jobCategoryRepository.existsByName(req.getName())) {
-            throw new Exception("Category name already exist, choose different name");
+        if (!category.getName().equals(req.getName())
+                && categoryRepository.existsByName(req.getName())) {
+            throw new JobException("Category with name '" + req.getName() + "' already exists");
         }
 
         JobCategory parent = null;
-
         if (req.getParentId() != null) {
             if (req.getParentId().equals(id)) {
-                throw new Exception("A category cannot be its own parent");
+                throw new JobException("A category cannot be its own parent");
             }
             parent = getCategoryEntityById(req.getParentId());
         }
@@ -81,40 +142,44 @@ public class JobCategoryServiceImpl implements JobCategoryService {
         category.setIconUrl(req.getIconUrl());
         category.setParent(parent);
 
-        JobCategory updated = jobCategoryRepository.save(category);
-        return JobCategoryMapper.toJobCategoryResponse(updated, true);
+        return JobMapper.toCategoryResponse(
+                categoryRepository.save(category), true);
     }
 
+    // ── Delete ────────────────────────────────────────────────────────────────
+
     @Override
-    public void deleteCategory(Long id) throws Exception {
-        // performing soft delete
+    @Transactional
+    public void deleteCategory(Long id) throws ResourceNotFoundException {
         JobCategory category = getCategoryEntityById(id);
         category.setActive(false);
-        jobCategoryRepository.save(category);
+        categoryRepository.save(category);
     }
+
+    // ── Internal ──────────────────────────────────────────────────────────────
 
     @Override
-    public JobCategory getCategoryEntityById(Long id) throws Exception {
-        return  jobCategoryRepository.findById(id).orElseThrow(
-                () -> new Exception("category not found")
-        );
+    @Transactional(readOnly = true)
+    public JobCategory getCategoryEntityById(Long id) throws ResourceNotFoundException {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Job category not found with id: " + id));
     }
 
-    private String generateUniqueSlug(@NotBlank(message = "company name is required") String name) {
+    // ── Private utilities ─────────────────────────────────────────────────────
+
+    private String generateUniqueSlug(String name) {
         String base = name.toLowerCase()
                 .replaceAll("[^a-z0-9\\s-]", "")
-                .trim().replaceAll("[\\s-]+", "-");
-
-        if (!jobCategoryRepository.existsBySlug(base)) {
+                .trim()
+                .replaceAll("[\\s-]+", "-");
+        if (!categoryRepository.existsBySlug(base)) {
             return base;
         }
-
-        //example slug: my-company-1
         int counter = 1;
-
-        while (jobCategoryRepository.existsBySlug(base + "-" + counter)) {
+        while (categoryRepository.existsBySlug(base + "-" + counter)) {
             counter++;
         }
-        return base + "_" + counter;
+        return base + "-" + counter;
     }
 }
