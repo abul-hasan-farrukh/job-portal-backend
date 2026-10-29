@@ -1,7 +1,12 @@
 package com.aimbitious.job.service;
 
-import com.aimbitious.job.dto.JobSkillResponse;
+import com.aimbitious.job.domain.SkillCategory;
+import com.aimbitious.job.dto.response.JobSkillResponse;
+import com.aimbitious.job.exception.JobException;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.model.JobSkill;
+import com.aimbitious.job.payload.BulkJobSkillRequest;
+import com.aimbitious.job.payload.BulkJobSkillResponse;
 import com.aimbitious.job.payload.JobSkillRequest;
 
 import java.util.List;
@@ -9,16 +14,23 @@ import java.util.Set;
 
 public interface JobSkillService {
 
-    JobSkillResponse createSkill(JobSkillRequest req) throws Exception;
+    JobSkillResponse createSkill(JobSkillRequest req) throws JobException;
+
+    BulkJobSkillResponse createSkillsBulk(BulkJobSkillRequest req);
 
     List<JobSkillResponse> getAllSkills();
 
-    JobSkillResponse getSkillById(Long id) throws Exception;
+    List<JobSkillResponse> getSkillsByCategory(SkillCategory category);
 
-    JobSkillResponse updateSkill(Long id, JobSkillRequest req) throws Exception;
+    List<JobSkillResponse> searchSkills(String keyword);
 
-    JobSkillResponse deleteSkill(Long id) throws Exception;
+    JobSkillResponse getSkillById(Long id) throws ResourceNotFoundException;
 
-    Set<JobSkill> getSkillsByIds(Set<Long> ids);
+    JobSkillResponse updateSkill(Long id, JobSkillRequest req)
+            throws ResourceNotFoundException, JobException;
 
+    void deleteSkill(Long id) throws ResourceNotFoundException;
+
+    /** Used internally to load skills by IDs for job creation. */
+    Set<JobSkill> getSkillEntitiesByIds(Set<Long> ids) throws ResourceNotFoundException;
 }
