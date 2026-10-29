@@ -3,3 +3,11 @@ spring:
     name: aimbitious-job-portal-job-service
   config:
     import: "optional:configserver:https://aimbitious-config-server.onrender.com"
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
