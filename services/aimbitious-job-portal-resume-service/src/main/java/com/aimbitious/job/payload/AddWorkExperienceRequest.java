@@ -13,9 +13,9 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class AddWorkExperience {
+public class AddWorkExperienceRequest {
 
-    @NotBlank(message = "company name is required")
+    @NotBlank(message = "Company name is required")
     private String companyName;
 
     private String companyLogoUrl;
@@ -24,7 +24,6 @@ public class AddWorkExperience {
     private String jobTitle;
 
     private JobType employmentType;
-
     private String location;
 
     @NotNull(message = "Start date is required")
@@ -36,9 +35,7 @@ public class AddWorkExperience {
     private Boolean isCurrentJob = false;
 
     private String description;
-
     private List<String> technologies;
-
     private Integer displayOrder;
 
 }
