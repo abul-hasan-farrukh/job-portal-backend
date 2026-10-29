@@ -9,19 +9,38 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.util.List;
 
-@Getter
-@Setter
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
+/**
+ * Holds all optional search and filter parameters for GET /api/jobs.
+ * Every field is optional — null means "no filter applied".
+ * Spring MVC binds this automatically via @ModelAttribute (query params).
+ *
+ * Search (LIKE across multiple fields):
+ *   keyword  → title, description, skill names, tag names
+ *
+ * Filters (exact/range match):
+ *   categoryId, skillIds, tagIds, companyId
+ *   location (matches city, state, or country)
+ *   minSalary / maxSalary (salary range overlap)
+ *   jobType, workMode, status
+ *   minOpenings / maxOpenings
+ */
+
+@Data
 public class JobSearchRequest {
 
+    // ── Full-text search ──────────────────────────────────────────────────────
+
+    /** Searches across: title, description, skill names, tag names. */
     private String keyword;
+
+    // ── Filters ───────────────────────────────────────────────────────────────
 
     private Long categoryId;
 
-    private List<Long> skillsIds;
+    /** Filter jobs that have ANY of these skill IDs. */
+    private List<Long> skillIds;
 
+    /** Filter jobs that have ANY of these tag IDs. */
     private List<Long> tagIds;
 
     private Long companyId;
@@ -45,6 +64,5 @@ public class JobSearchRequest {
     private JobStatus status;
 
     private Integer minOpenings;
-
     private Integer maxOpenings;
 }
