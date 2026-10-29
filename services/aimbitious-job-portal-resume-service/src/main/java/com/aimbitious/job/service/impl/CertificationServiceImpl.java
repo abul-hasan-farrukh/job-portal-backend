@@ -1,6 +1,7 @@
 package com.aimbitious.job.service.impl;
 
-import com.aimbitious.job.dto.CertificationResponse;
+import com.aimbitious.job.dto.response.CertificationResponse;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.mapper.ResumeMapper;
 import com.aimbitious.job.model.Certification;
 import com.aimbitious.job.model.Resume;
@@ -24,7 +25,7 @@ public class CertificationServiceImpl implements CertificationService {
     @Override
     @Transactional
     public CertificationResponse addCertification(Long resumeId, Long candidateId,
-                                                  AddCertificationRequest req) throws Exception {
+                                                  AddCertificationRequest req) throws ResourceNotFoundException {
         Resume resume = resumeService.getResumeEntity(resumeId);
         assertOwner(resume, candidateId, resumeId);
 
@@ -44,7 +45,7 @@ public class CertificationServiceImpl implements CertificationService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<CertificationResponse> getCertifications(Long resumeId) throws Exception {
+    public List<CertificationResponse> getCertifications(Long resumeId) throws ResourceNotFoundException {
         resumeService.getResumeEntity(resumeId);
         return certificationRepository.findByResume_IdOrderByDisplayOrderAsc(resumeId)
                 .stream().map(ResumeMapper::toCertificationResponse).toList();
@@ -53,7 +54,7 @@ public class CertificationServiceImpl implements CertificationService {
     @Override
     @Transactional
     public CertificationResponse updateCertification(Long certificationId, Long resumeId,
-                                                     Long candidateId, AddCertificationRequest req) throws Exception {
+                                                     Long candidateId, AddCertificationRequest req) throws ResourceNotFoundException {
         Certification cert = getCertificationEntity(certificationId, resumeId);
         assertOwner(cert.getResume(), candidateId, resumeId);
 
@@ -71,27 +72,27 @@ public class CertificationServiceImpl implements CertificationService {
     @Override
     @Transactional
     public void deleteCertification(Long certificationId, Long resumeId, Long candidateId)
-            throws Exception {
+            throws ResourceNotFoundException {
         Certification cert = getCertificationEntity(certificationId, resumeId);
         assertOwner(cert.getResume(), candidateId, resumeId);
         certificationRepository.delete(cert);
     }
 
     private Certification getCertificationEntity(Long certificationId, Long resumeId)
-            throws Exception {
+            throws ResourceNotFoundException {
         Certification cert = certificationRepository.findById(certificationId)
-                .orElseThrow(() -> new Exception(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Certification not found with id: " + certificationId));
         if (!cert.getResume().getId().equals(resumeId)) {
-            throw new Exception("Certification not found with id: " + certificationId);
+            throw new ResourceNotFoundException("Certification not found with id: " + certificationId);
         }
         return cert;
     }
 
     private void assertOwner(Resume resume, Long candidateId, Long resumeId)
-            throws Exception {
+            throws ResourceNotFoundException {
         if (!resume.getCandidateId().equals(candidateId)) {
-            throw new Exception("Resume not found with id: " + resumeId);
+            throw new ResourceNotFoundException("Resume not found with id: " + resumeId);
         }
     }
 }
