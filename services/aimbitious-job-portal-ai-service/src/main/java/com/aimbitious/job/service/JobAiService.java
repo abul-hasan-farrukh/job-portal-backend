@@ -24,6 +24,8 @@ public class JobAiService {
             When asked for JSON, respond ONLY with valid JSON — no explanation, no markdown fences.
             """;
 
+    // ==================== Phase 1: Job Description Generator ====================
+
     public AiTextResponse generateJobDescription(JobDescriptionRequest req) throws Exception {
 
         String skills = req.getSkills() != null ? String.join("," , req.getSkills()) : "Not Specified";
@@ -83,6 +85,7 @@ public class JobAiService {
                 .build();
     }
 
+    // ==================== Phase 2: Job Requirement Auto-fill ====================
 
     public AiTextResponse generateJobRequirements(String title, String category) throws Exception {
         String prompt = """
@@ -110,6 +113,8 @@ public class JobAiService {
                 .build();
     }
 
+
+    // ==================== Phase 1: Salary Range Suggestion ====================
 
     public SalaryRangeResponse suggestSalaryRange(SalaryRangeRequest req) throws Exception {
         String skills = req.getSkills() != null ? String.join("," , req.getSkills()) : "Not Specified";
@@ -151,6 +156,7 @@ public class JobAiService {
         return geminiClient.generateJson(system_prompt, prompt, SalaryRangeResponse.class);
     }
 
+    // ==================== Responsibilities Auto-fill ====================
 
     public AiTextResponse generateJobResponsibilities(String title, String category) throws Exception {
 
@@ -174,6 +180,7 @@ public class JobAiService {
                 .build();
     }
 
+    // ==================== Benefits Auto-fill ====================
 
     public AiTextResponse generateJobBenefits(String title, String category, String jobType) throws Exception {
 
@@ -204,6 +211,8 @@ public class JobAiService {
     }
 
 
+    // ==================== Phase 3: Skills Recommendation for Job ====================
+
     public AiTextResponse recommendSkillsForJob(String jobTitle, String description) throws Exception {
         String prompt = """
                 Recommend the most relevant skills for this job posting.
@@ -226,6 +235,8 @@ public class JobAiService {
                 .build();
     }
 
+    // ==================== Tags Recommendation for Job ====================
+
     public AiTextResponse recommendTagsForJob(String jobTitle, String description) throws Exception {
 
         String prompt = """
@@ -243,8 +254,5 @@ public class JobAiService {
                 .content( geminiClient.generateText(system_prompt, prompt))
                 .build();
     }
-
-
-
 
 }
