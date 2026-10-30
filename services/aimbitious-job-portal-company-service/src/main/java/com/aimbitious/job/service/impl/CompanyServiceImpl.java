@@ -3,50 +3,54 @@ package com.aimbitious.job.service.impl;
 import com.aimbitious.job.domain.CompanyStatus;
 import com.aimbitious.job.domain.CompanyType;
 import com.aimbitious.job.domain.IndustryType;
-import com.aimbitious.job.dto.CompanyRequest;
-import com.aimbitious.job.dto.CompanyResponse;
-import com.aimbitious.job.dto.SocialLinkResponse;
+import com.aimbitious.job.dto.response.CompanyRequest;
+import com.aimbitious.job.dto.response.CompanyResponse;
+import com.aimbitious.job.dto.response.CompanySummaryResponse;
+import com.aimbitious.job.exception.CompanyException;
+import com.aimbitious.job.exception.ResourceNotFoundException;
 import com.aimbitious.job.mapper.CompanyMapper;
 import com.aimbitious.job.model.Company;
-import com.aimbitious.job.model.SocialLink;
+import com.aimbitious.job.model.CompanyLocation;
+import com.aimbitious.job.model.embeddable.SocialLink;
+import com.aimbitious.job.repository.CompanyLocationRepository;
 import com.aimbitious.job.repository.CompanyRepository;
 import com.aimbitious.job.service.CompanyService;
-import jakarta.validation.constraints.NotBlank;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class CompanyServiceImpl implements CompanyService {
 
     private final CompanyRepository companyRepository;
+    private final CompanyLocationRepository locationRepository;
 
-    public CompanyServiceImpl(CompanyRepository companyRepository) {
-        this.companyRepository = companyRepository;
-    }
+    // ── Create ────────────────────────────────────────────────────────────────
 
     @Override
-    public CompanyResponse createCompany(Long ownerId, CompanyRequest req) throws Exception {
-
-        if(companyRepository.existsByOwnerId(ownerId)) {
-            throw new Exception ("You already have a company registered. "
-                    + "Only one company per account is allowed.");
+    @Transactional
+    public CompanyResponse createCompany(Long ownerId, CompanyRequest req) throws CompanyException {
+        if (companyRepository.existsByOwnerId(ownerId)) {
+            throw new CompanyException("You already have a company registered. " +
+                    "Only one company per account is allowed.");
         }
-
-        if(companyRepository.existsByName(req.getName())){
-            throw new Exception("Company already exists. Please choose a different name.");
+        if (companyRepository.existsByName(req.getName())) {
+            throw new CompanyException("Company with name '" + req.getName() + "' already exists");
         }
-
-        if(req.getRegistrationNumber() != null &&
-                companyRepository.existsByRegistrationNumber(req.getRegistrationNumber())){
-            throw new Exception("Company already exists. Please choose a different registration number.");
+        if (req.getRegistrationNumber() != null
+                && companyRepository.existsByRegistrationNumber(req.getRegistrationNumber())) {
+            throw new CompanyException("Company with registration number '"
+                    + req.getRegistrationNumber() + "' already exists");
         }
 
         String slug = generateUniqueSlug(req.getName());
 
-        //building company object here
         Company company = Company.builder()
                 .name(req.getName())
                 .slug(slug)
@@ -66,90 +70,59 @@ public class CompanyServiceImpl implements CompanyService {
                 .socialLinks(mapSocialLinks(req.getSocialLinks()))
                 .build();
 
-        Company saved = companyRepository.save(company);
-
-        return CompanyMapper.toResponse(saved);
+        return CompanyMapper.toResponse(companyRepository.save(company));
     }
 
-    private List<SocialLink> mapSocialLinks(List<SocialLinkResponse> socialLinks) {
-        if (socialLinks == null || socialLinks.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        return socialLinks.stream()
-                .map(e -> SocialLink.builder()
-                        .socialPlatform(e.getSocialPlatform())
-                        .url(e.getUrl())
-                        .build())
-                .collect(Collectors.toList());
-    }
-
-    private String generateUniqueSlug(@NotBlank(message = "company name is required") String name) {
-        String base = name.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .trim().replaceAll("[\\s-]", "-");
-
-        if (!companyRepository.existsBySlug(base)) {
-            return base;
-        }
-
-        //example slug: my-company-1
-        int counter = 1;
-
-        while (companyRepository.existsBySlug(base + "-" + counter)) {
-            counter++;
-        }
-        return base + "_" + counter;
-    }
+    // ── Read ──────────────────────────────────────────────────────────────────
 
     @Override
-    public CompanyResponse getCompanyById(Long id) throws Exception {
-        Company company = companyRepository.findById(id).orElseThrow(
-                () -> new Exception("company not found with id")
-        );
+    @Transactional(readOnly = true)
+    public CompanyResponse getCompanyById(Long id) throws ResourceNotFoundException {
+        Company company = getCompanyEntityById(id);
         return CompanyMapper.toResponse(company);
     }
 
     @Override
-    public CompanyResponse getMyCompany(Long ownerId) throws Exception {
-        Company company = companyRepository.findByOwnerId(ownerId).orElseThrow(
-                () -> new Exception("company doesn't exist with owner id: " +ownerId)
-        );
+    public CompanySummaryResponse getCompanySummaryById(Long id) throws ResourceNotFoundException {
+        Company company = getCompanyEntityById(id);
+        return CompanyMapper.toSummaryResponse(company);
+    }
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public CompanyResponse getMyCompany(Long ownerId) throws ResourceNotFoundException {
+        Company company = companyRepository.findByOwnerId(ownerId)
+                .orElseThrow(() -> new ResourceNotFoundException("No company found for this account"));
 
         return CompanyMapper.toResponse(company);
     }
 
     @Override
-    public List<CompanyResponse> getAllCompanies(CompanyType companyType,
-                                                 IndustryType industryType,
-                                                 CompanyStatus companyStatus) {
-
-
-        return companyRepository.findByFilters(
-                companyType,
-                industryType,
-                companyStatus
-        ).stream()
+    @Transactional(readOnly = true)
+    public List<CompanyResponse> getAllCompanies(CompanyType companyType, IndustryType industryType, CompanyStatus status) {
+        return companyRepository.findByFilters(companyType, industryType, status).stream()
                 .map(CompanyMapper::toResponse)
                 .collect(Collectors.toList());
     }
 
+    // ── Update ────────────────────────────────────────────────────────────────
+
     @Override
-    public CompanyResponse updateCompany(Long companyId,
-                                         Long ownerId,
-                                         CompanyRequest req) throws Exception {
+    @Transactional
+    public CompanyResponse updateCompany(Long companyId, Long ownerId, CompanyRequest req)
+            throws ResourceNotFoundException, CompanyException {
         Company company = getCompanyEntityById(companyId);
+        assertOwner(company, ownerId);
 
-        if (!company.getName().equals(req.getName()) &&
-                companyRepository.existsByName(req.getName()))
-        {
-            throw new Exception("Company already exists. Please choose a different name.");
+        if (!company.getName().equals(req.getName())
+                && companyRepository.existsByName(req.getName())) {
+            throw new CompanyException("Company with name '" + req.getName() + "' already exists");
         }
-
         if (req.getRegistrationNumber() != null
                 && !req.getRegistrationNumber().equals(company.getRegistrationNumber())
                 && companyRepository.existsByRegistrationNumber(req.getRegistrationNumber())) {
-            throw new Exception("Company already exists. Please choose a different registration number.");
+            throw new CompanyException("Registration number '" + req.getRegistrationNumber() + "' already in use");
         }
 
         company.setName(req.getName());
@@ -170,39 +143,79 @@ public class CompanyServiceImpl implements CompanyService {
         return CompanyMapper.toResponse(companyRepository.save(company));
     }
 
+    // ── Admin actions ─────────────────────────────────────────────────────────
+
     @Override
-    public CompanyResponse verifyCompany(Long companyId) throws Exception {
+    @Transactional
+    public CompanyResponse verifyCompany(Long companyId) throws ResourceNotFoundException {
         Company company = getCompanyEntityById(companyId);
-        company.setStatus(CompanyStatus.ACTIVE);
         company.setVerified(true);
+        company.setVerifiedAt(LocalDateTime.now());
+        company.setStatus(CompanyStatus.ACTIVE);
+
         return CompanyMapper.toResponse(companyRepository.save(company));
     }
 
     @Override
-    public void deleteCompany(Long companyId, Long ownerId) throws Exception {
+    @Transactional
+    public CompanyResponse deactivateCompany(Long companyId) throws ResourceNotFoundException {
+        Company company = getCompanyEntityById(companyId);
+        company.setActive(false);
+        company.setStatus(CompanyStatus.SUSPENDED);
+        List<CompanyLocation> locations = locationRepository.findByCompanyIdAndActiveTrue(companyId);
+        return CompanyMapper.toResponse(companyRepository.save(company));
+    }
+
+    // ── Delete ────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public void deleteCompany(Long companyId, Long ownerId)
+            throws ResourceNotFoundException, CompanyException {
         Company company = getCompanyEntityById(companyId);
         assertOwner(company, ownerId);
         companyRepository.delete(company);
     }
 
-    private void assertOwner(Company company, Long ownerId) throws Exception {
-        if(!company.getOwnerId().equals(ownerId)){
-            throw new Exception("you are not the owner of this company");
+    // ── Internal helper ───────────────────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public Company getCompanyEntityById(Long id) throws ResourceNotFoundException {
+        return companyRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Company not found with id: " + id));
+    }
+
+    // ── Private utilities ─────────────────────────────────────────────────────
+
+    private void assertOwner(Company company, Long ownerId) throws CompanyException {
+        if (!company.getOwnerId().equals(ownerId)) {
+            throw new CompanyException("You are not the owner of this company");
         }
     }
 
-    @Override
-    public CompanyResponse deactivateCompany(Long companyId) throws Exception {
-        Company company = getCompanyEntityById(companyId);
-        company.setStatus(CompanyStatus.SUSPENDED);
-        company.setVerified(false);
-        return CompanyMapper.toResponse(companyRepository.save(company));
+    private String generateUniqueSlug(String name) {
+        String base = name.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "")
+                .trim()
+                .replaceAll("[\\s-]+", "-");
+        if (!companyRepository.existsBySlug(base)) {
+            return base;
+        }
+        int counter = 1;
+        while (companyRepository.existsBySlug(base + "-" + counter)) {
+            counter++;
+        }
+        return base + "-" + counter;
     }
 
-    @Override
-    public Company getCompanyEntityById(Long id) throws Exception {
-        return companyRepository.findById(id).orElseThrow(
-                () -> new Exception("company not found with id")
-        );
+    private List<SocialLink> mapSocialLinks(List<CompanyRequest.SocialLinkEntry> entries) {
+        if (entries == null) return new ArrayList<>();
+        return entries.stream()
+                .map(e -> SocialLink.builder()
+                        .platform(e.getPlatform())
+                        .url(e.getUrl())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
