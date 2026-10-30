@@ -1,5 +1,6 @@
 package com.aimbitious.job.controller;
 
+import com.aimbitious.job.dto.response.ApiResponse;
 import com.aimbitious.job.payload.*;
 import com.aimbitious.job.service.ApplicationAiService;
 import jakarta.validation.Valid;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -18,34 +20,60 @@ public class AiApplicationController {
 
     private final ApplicationAiService applicationAiService;
 
+
+    /**
+     * Phase 2: Generate a personalized cover letter for a job application.
+     * Called from the Apply Job form on the frontend.
+     * POST /api/ai/application/cover-letter
+     */
     @PostMapping("/cover-letter")
-    public ResponseEntity<AiTextResponse> generateCoverLetter(
+    public ResponseEntity<ApiResponse<AiTextResponse>> generateCoverLetter(
             @Valid @RequestBody CoverLetterRequest request
     ) throws Exception {
-
         AiTextResponse response =
                 applicationAiService.generateCoverLetter(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Cover letter generated", response));
     }
 
-    @PostMapping("/screening-core")
-    public ResponseEntity<ScreeningScoreResponse> scoreCandidate(
+
+    /**
+     * Phase 3: Score a candidate's application against job requirements.
+     * Used by employer in the Applications page to see AI match score.
+     * POST /api/ai/application/screening-score
+     */
+    @PostMapping("/screening-score")
+    public ResponseEntity<ApiResponse<ScreeningScoreResponse>> scoreCandidate(
             @Valid @RequestBody ScreeningScoreRequest request
     ) throws Exception {
-
-        return ResponseEntity.ok(
-                applicationAiService.scoreResponse(request)
-        );
+        ScreeningScoreResponse response = applicationAiService.scoreCandidate(request);
+        return ResponseEntity.ok(ApiResponse.success("Candidate screened", response));
     }
 
+
+    /**
+     * Phase 4: Analyze skills gap between candidate and job requirements.
+     * Used by candidate in JobDetails page.
+     * POST /api/ai/application/skills-gap
+     */
     @PostMapping("/skills-gap")
-    public ResponseEntity<SkillsGapResponse> analyzeSkillsGap(
+    public ResponseEntity<ApiResponse<SkillsGapResponse>> analyzeSkillsGap(
             @Valid @RequestBody SkillsGapRequest request
     ) throws Exception {
+        SkillsGapResponse response = applicationAiService.analyzeSkillsGap(request);
+        return ResponseEntity.ok(ApiResponse.success("Skills gap analyzed", response));
+    }
 
-        return ResponseEntity.ok(
-                applicationAiService.analyzeSkillsGap(request)
-        );
+
+    /**
+     * Phase 5: Summarize all recruiter notes for an application (TL;DR).
+     * Used by employer in the Application detail view.
+     * POST /api/ai/application/summarize-notes
+     */
+    @PostMapping("/summarize-notes")
+    public ResponseEntity<ApiResponse<AiTextResponse>> summarizeNotes(
+            @RequestBody List<String> notes) throws Exception {
+        AiTextResponse response = applicationAiService.summarizeApplicationNotes(notes);
+        return ResponseEntity.ok(ApiResponse.success("Notes summarized", response));
     }
 
 }
