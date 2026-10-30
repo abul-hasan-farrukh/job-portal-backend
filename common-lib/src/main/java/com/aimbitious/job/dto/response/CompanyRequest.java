@@ -1,8 +1,9 @@
-package com.aimbitious.job.dto;
+package com.aimbitious.job.dto.response;
 
 import com.aimbitious.job.domain.CompanySize;
 import com.aimbitious.job.domain.CompanyType;
 import com.aimbitious.job.domain.IndustryType;
+import com.aimbitious.job.domain.SocialPlatform;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -15,9 +16,11 @@ import java.util.List;
 @Builder
 public class CompanyRequest {
 
-    @NotBlank(message = "company name is required")
+    @NotBlank(message = "Company name is required")
+    @Size(max = 150, message = "Name must not exceed 150 characters")
     private String name;
 
+    @Size(max = 200, message = "Tagline must not exceed 200 characters")
     private String tagline;
 
     private String description;
@@ -49,5 +52,22 @@ public class CompanyRequest {
     /** Official company registration / CIN number for verification. */
     private String registrationNumber;
 
-    private List<SocialLinkResponse> socialLinks;
+    private List<SocialLinkEntry> socialLinks;
+
+    // -------------------------------------------------------
+    // Nested DTO — keeps the request flat and explicit
+    // -------------------------------------------------------
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SocialLinkEntry {
+        @NotNull(message = "Platform is required")
+        private SocialPlatform platform;
+
+        @NotBlank(message = "URL is required")
+        @Pattern(regexp = "^(https?://).*", message = "URL must be valid")
+        private String url;
+    }
 }
