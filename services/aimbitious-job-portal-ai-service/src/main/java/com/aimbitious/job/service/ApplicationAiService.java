@@ -3,8 +3,12 @@ package com.aimbitious.job.service;
 import com.aimbitious.job.client.GeminiClient;
 import com.aimbitious.job.payload.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ApplicationAiService {
@@ -20,6 +24,8 @@ public class ApplicationAiService {
             
             When asked for JSON, respond ONLY with valid JSON — no explanation, no markdown fences.
             """;
+
+    // ==================== Phase 1: Cover Letter Generator ====================
 
     public AiTextResponse generateCoverLetter(CoverLetterRequest request) throws Exception {
 
@@ -75,8 +81,9 @@ Rules:
                 .build();
     }
 
+    // ==================== Phase 2: Candidate Screening Score ====================
 
-    public ScreeningScoreResponse scoreResponse(ScreeningScoreRequest req) throws Exception {
+    public ScreeningScoreResponse scoreCandidate(ScreeningScoreRequest req) throws Exception {
 
         String requiredSkills = req.getRequiredSkills() != null
                 ? String.join(", ", req.getRequiredSkills())
@@ -89,6 +96,9 @@ Rules:
         String candidateExperience = req.getCandidateExperience() != null
                 ? String.join(", ", req.getCandidateExperience())
                 : "Not Provided";
+
+        String candidateEdu = req.getCandidateEducation() != null && !req.getCandidateEducation().isEmpty()
+                ? String.join("; ", req.getCandidateEducation()) : "Not provided";
 
         String prompt = """
 Score this job application based on how well the candidate matches the requirements.
@@ -145,6 +155,8 @@ Rules:
                 return geminiClient.generateJson(SYSTEM_PROMPT, prompt, ScreeningScoreResponse.class);
     }
 
+    // ==================== Phase 3: Skills Gap Analysis ====================
+
     public SkillsGapResponse analyzeSkillsGap(SkillsGapRequest req) throws Exception {
 
         String candidateSkills = req.getCandidateSkills() != null
@@ -184,5 +196,29 @@ Skills Required for the Job: %s
         );
 
         return geminiClient.generateJson(SYSTEM_PROMPT, prompt, SkillsGapResponse.class);
+    }
+
+    // ==================== Phase 4: Application Note Summarizer ====================
+
+    public AiTextResponse summarizeApplicationNotes(List<String> notes) throws Exception {
+        String allNotes = String.join("\n---\n", notes);
+        String prompt = """
+                Summarize these recruiter notes about a job candidate into a concise TL;DR.
+
+                Recruiter Notes:
+                %s
+
+                Write a 3-5 sentence summary covering:
+                1. Overall impression of the candidate
+                2. Key strengths mentioned
+                3. Any concerns or points to verify
+                4. Recommended next step (if mentioned)
+
+                Keep it factual, based only on what's in the notes.
+                """.formatted(allNotes);
+
+        return AiTextResponse.builder()
+                .content(geminiClient.generateText(SYSTEM_PROMPT, prompt))
+                .build();
     }
 }
