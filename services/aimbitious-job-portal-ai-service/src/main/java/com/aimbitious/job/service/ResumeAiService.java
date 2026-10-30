@@ -24,6 +24,8 @@ public class ResumeAiService {
             
             """;
 
+    // ==================== Phase 1: Professional Summary Generator ====================
+
     public AiTextResponse generateProfessionalSummary(ResumeSummaryRequest req) throws Exception {
 
         String experiences = req.getWorkExperiences() != null
@@ -82,6 +84,8 @@ public class ResumeAiService {
                 .build();
     }
 
+    // ==================== Phase 2: Work Experience Bullet Generator ====================
+
     public WorkExperienceBulletsResponse generateWorkExperienceBullets(WorkExperienceBulletRequest req) throws Exception {
 
         String prompt = """
@@ -114,6 +118,47 @@ public class ResumeAiService {
                 prompt,
                 WorkExperienceBulletsResponse.class);
     }
+
+
+    // ==================== Phase 3: Resume PDF Parser ====================
+
+    public ResumeParseResponse parseResume(ResumeParseRequest req) throws Exception {
+        String prompt = """
+                Parse this resume text and extract all structured information.
+
+                Resume Text:
+                %s
+
+                Extract all available information and return JSON in this exact structure:
+                {
+                  "personalInfo": { "fullName": "", "email": "", "phone": "", "location": "", "linkedIn": "", "github": "", "website": "" },
+                  "summary": "",
+                  "workExperiences": [
+                    { "companyName": "", "jobTitle": "", "startDate": "YYYY-MM", "endDate": "YYYY-MM or null if current", "isCurrent": false, "description": "" }
+                  ],
+                  "educations": [
+                    { "schoolName": "", "degree": "", "field": "", "startDate": "YYYY-MM", "endDate": "YYYY-MM" }
+                  ],
+                  "skills": ["skill1", "skill2"],
+                  "certifications": [
+                    { "name": "", "issuer": "", "issueDate": "YYYY-MM" }
+                  ],
+                  "languages": [
+                    { "language": "", "proficiency": "BASIC or INTERMEDIATE or ADVANCED or NATIVE" }
+                  ]
+                }
+
+                Rules:
+                - Use null for missing fields
+                - Dates in YYYY-MM format
+                - If current job, set endDate to null and isCurrent to true
+                - Extract all skills mentioned anywhere in the resume
+                """.formatted(req.getResumeText());
+
+        return geminiClient.generateJson(SYSTEM_PROMPT, prompt, ResumeParseResponse.class);
+    }
+
+    // ==================== AI Career Feedback Engine ====================
 
     public CareerFeedbackResponse getCareerFeedback(CareerFeedbackRequest req) throws Exception {
         String prompt = """
@@ -166,6 +211,8 @@ public class ResumeAiService {
                 CareerFeedbackResponse.class
         );
     }
+
+    // ==================== Phase 4: Resume Improvement Tips ====================
 
     public ResumeImprovementResponse getResumeImprovementTips(ResumeImprovementRequest req) throws Exception {
 
