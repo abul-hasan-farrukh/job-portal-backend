@@ -1,10 +1,7 @@
 package com.aimbitious.job.service;
 
 import com.aimbitious.job.client.GeminiClient;
-import com.aimbitious.job.payload.JobAlertSuggestRequest;
-import com.aimbitious.job.payload.JobAlertSuggestResponse;
-import com.aimbitious.job.payload.SearchEnhanceRequest;
-import com.aimbitious.job.payload.SearchEnhanceResponse;
+import com.aimbitious.job.payload.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,6 +20,8 @@ public class SearchAiService {
             
             When asked for JSON, respond ONLY with valid JSON — no explanation, no markdown fences.
             """;
+
+    // ==================== Phase 3: AI Semantic Search Enhancement ====================
 
     public SearchEnhanceResponse enhanceSearch(SearchEnhanceRequest req) throws Exception {
 
@@ -60,6 +59,68 @@ Rules:
                 return geminiClient.generateJson(SYSTEM_PROMPT, prompt, SearchEnhanceResponse.class);
     }
 
+
+    // ==================== Phase 4: Job Match Score ====================
+
+    public JobMatchResponse calculateJobMatch(JobMatchRequest req) throws Exception {
+        String candidateSkills = req.getCandidateSkills() != null
+                ? String.join(", ", req.getCandidateSkills()) : "Not provided";
+        String jobSkills = req.getJobSkills() != null
+                ? String.join(", ", req.getJobSkills()) : "Not provided";
+        String preferredWorkModes = req.getPreferredWorkModes() != null
+                ? String.join(", ", req.getPreferredWorkModes()) : "Any";
+        String preferredJobTypes = req.getPreferredJobTypes() != null
+                ? String.join(", ", req.getPreferredJobTypes()) : "Any";
+
+        String prompt = """
+                Calculate how well this job matches the candidate's profile and preferences.
+
+                Candidate Preferences:
+                - Preferred Work Modes: %s
+                - Preferred Job Types: %s
+                - Minimum Salary: %s
+                - Experience Level: %s
+                - Skills: %s
+
+                Job Details:
+                - Title: %s
+                - Work Mode: %s
+                - Job Type: %s
+                - Salary Range: %s - %s %s
+                - Industry: %s
+                - Experience Required: %s
+                - Required Skills: %s
+
+                {
+                  "matchScore": 85,
+                  "matchedCriteria": ["Work mode matches preference", "Salary above minimum"],
+                  "unmatchedCriteria": ["Requires experience level above candidate's current level"],
+                  "recommendation": "Highly Recommended or Recommended or Partial Match or Not Recommended",
+                  "summary": "2-sentence explanation of the match quality"
+                }
+
+                Score: 0-100 based on how well the job meets ALL candidate preferences.
+                """.formatted(
+                preferredWorkModes, preferredJobTypes,
+                req.getMinSalary() != null ? req.getMinSalary() + " INR/year" : "Not specified",
+                req.getCandidateExperienceLevel() != null ? req.getCandidateExperienceLevel() : "Not specified",
+                candidateSkills,
+                req.getJobTitle() != null ? req.getJobTitle() : "Not specified",
+                req.getWorkMode() != null ? req.getWorkMode() : "Not specified",
+                req.getJobType() != null ? req.getJobType() : "Not specified",
+                req.getSalaryMin() != null ? req.getSalaryMin() : "Not disclosed",
+                req.getSalaryMax() != null ? req.getSalaryMax() : "Not disclosed",
+                req.getCurrency() != null ? req.getCurrency() : "INR",
+                req.getIndustry() != null ? req.getIndustry() : "Not specified",
+                req.getJobExperienceLevel() != null ? req.getJobExperienceLevel() : "Not specified",
+                jobSkills
+        );
+
+        return geminiClient.generateJson(SYSTEM_PROMPT, prompt, JobMatchResponse.class);
+    }
+
+
+    // ==================== Phase 4: Smart Job Alert Criteria Suggestion ====================
 
     public JobAlertSuggestResponse suggestJobAlertCriteria(JobAlertSuggestRequest req) throws Exception {
 
