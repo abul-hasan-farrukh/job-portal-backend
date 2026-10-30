@@ -1,5 +1,6 @@
 package com.aimbitious.job.controller;
 
+import com.aimbitious.job.dto.response.ApiResponse;
 import com.aimbitious.job.payload.AiTextResponse;
 import com.aimbitious.job.payload.JobDescriptionRequest;
 import com.aimbitious.job.payload.SalaryRangeRequest;
@@ -18,48 +19,71 @@ public class AiJobController {
 
     private final JobAiService jobAiService;
 
+    /**
+     * Phase 1: Generate a full professional job description from basic details.
+     * Used by employer in the CreateJob form.
+     * POST /api/ai/job/describe
+     */
     @PostMapping("/describe")
-    public ResponseEntity<AiTextResponse> generateJobDescription(
+    public ResponseEntity<ApiResponse<AiTextResponse>> generateJobDescription(
             @Valid @RequestBody JobDescriptionRequest request
     ) throws Exception {
-
         AiTextResponse response = jobAiService.generateJobDescription(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Job description generated", response));
     }
 
+
+    /**
+     * Phase 2: Auto-fill requirements based on job title.
+     * Used when employer types a job title.
+     * GET /api/ai/job/requirements?title=...&category=...
+     */
     @GetMapping("/requirements")
-    public ResponseEntity<AiTextResponse> generateJobRequirements(
+    public ResponseEntity<ApiResponse<AiTextResponse>> generateJobRequirements(
             @RequestParam String title,
             @RequestParam(required = false) String category
     ) throws Exception {
         AiTextResponse response =
                 jobAiService.generateJobRequirements(title, category);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Requirements generated", response));
     }
 
 
+    /**
+     * Phase 3: Suggest salary range for a role.
+     * Used in CreateJob salary section.
+     * POST /api/ai/job/salary-suggestion
+     */
     @PostMapping("/salary-suggestion")
-    public ResponseEntity<SalaryRangeResponse> suggestSalary(
+    public ResponseEntity<ApiResponse<SalaryRangeResponse>> suggestSalary(
             @Valid @RequestBody SalaryRangeRequest request
     ) throws Exception {
 
         SalaryRangeResponse response = jobAiService.suggestSalaryRange(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Salary range suggested", response));
     }
 
+    /**
+     * Phase 4: Recommend skills for a job posting.
+     * Used when employer fills in job details.
+     * GET /api/ai/job/skills-recommendation?title=...&description=...
+     */
     @GetMapping("/skills-recommendation")
-    public ResponseEntity<AiTextResponse> recommendSkills(
+    public ResponseEntity<ApiResponse<AiTextResponse>> recommendSkills(
             @RequestParam String title,
             @RequestParam(required = false) String category
     ) throws Exception {
-
-        AiTextResponse response =
-                jobAiService.recommendSkillsForJob(title, category);
-        return ResponseEntity.ok(response);
+        AiTextResponse response = jobAiService.recommendSkillsForJob(title, category);
+        return ResponseEntity.ok(ApiResponse.success("Skills recommended", response));
     }
 
+
+    /**
+     * Auto-fill responsibilities based on job title.
+     * GET /api/ai/job/responsibilities?title=...&category=...
+     */
     @GetMapping("/responsibilities")
-    public ResponseEntity<AiTextResponse> generateResponsibilities(
+    public ResponseEntity<ApiResponse<AiTextResponse>> generateResponsibilities(
 
             @RequestParam String title,
             @RequestParam(required = false) String category
@@ -67,11 +91,16 @@ public class AiJobController {
     ) throws Exception {
         AiTextResponse response =
                 jobAiService.generateJobResponsibilities(title, category);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Responsibilities generated", response));
     }
 
+
+    /**
+     * Auto-fill benefits based on job title and type.
+     * GET /api/ai/job/benefits?title=...&category=...&jobType=...
+     */
     @GetMapping("/benefits")
-    public ResponseEntity<AiTextResponse> generateBenefits(
+    public ResponseEntity<ApiResponse<AiTextResponse>> generateBenefits(
 
             @RequestParam String title,
             @RequestParam(required = false) String category,
@@ -80,11 +109,16 @@ public class AiJobController {
     ) throws Exception {
         AiTextResponse response =
                 jobAiService.generateJobBenefits(title, category, jobType);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Benefits generated", response));
     }
 
+
+    /**
+     * Recommend tags/keywords for job discoverability.
+     * GET /api/ai/job/tags-recommendation?title=...&description=...
+     */
     @GetMapping("/tags-recommendation")
-    public ResponseEntity<AiTextResponse> recommendTags(
+    public ResponseEntity<ApiResponse<AiTextResponse>> recommendTags(
 
             @RequestParam String title,
             @RequestParam(required = false) String description
@@ -92,7 +126,7 @@ public class AiJobController {
     ) throws Exception {
         AiTextResponse response =
                 jobAiService.recommendTagsForJob(title, description);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.success("Tags recommended", response));
     }
 
 }
