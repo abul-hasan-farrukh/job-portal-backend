@@ -7,5 +7,7 @@ import java.util.List;
 
 public interface ApplicationNoteRepository extends JpaRepository<ApplicationNote, Long> {
 
-        List<ApplicationNote> findByApplicationId(Long applicationId);
+    List<ApplicationNote> findByApplicationIdOrderByCreatedAtDesc(Long applicationId);
+
+    void deleteByApplicationId(Long applicationId);
 }
