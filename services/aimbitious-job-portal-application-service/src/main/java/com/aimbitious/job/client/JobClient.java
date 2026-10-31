@@ -1,8 +1,8 @@
 package com.aimbitious.job.client;
 
-import com.aimbitious.job.dto.JobResponse;
+import com.aimbitious.job.dto.response.JobResponse;
+import com.aimbitious.job.dto.response.JobSummaryResponse;
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -10,8 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 public interface JobClient {
 
     @GetMapping("/api/jobs/{id}")
-    JobResponse getJobById(
-            @PathVariable Long id);
+    JobResponse getJobById(@PathVariable("id") Long id);
 
+    @GetMapping("/api/jobs/{id}/summary")
+    JobSummaryResponse getJobSummaryById(@PathVariable("id") Long id);
 
 }
