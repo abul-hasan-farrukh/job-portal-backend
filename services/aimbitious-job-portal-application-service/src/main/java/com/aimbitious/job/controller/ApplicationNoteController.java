@@ -1,7 +1,7 @@
 package com.aimbitious.job.controller;
 
-import com.aimbitious.job.dto.ApiResponse;
-import com.aimbitious.job.dto.ApplicationNoteResponse;
+import com.aimbitious.job.dto.response.ApiResponse;
+import com.aimbitious.job.dto.response.ApplicationNoteResponse;
 import com.aimbitious.job.payload.AddApplicationNoteRequest;
 import com.aimbitious.job.service.ApplicationNoteService;
 import jakarta.validation.Valid;
