@@ -1,6 +1,6 @@
 package com.aimbitious.job.client;
 
-import com.aimbitious.job.dto.ResumeResponse;
+import com.aimbitious.job.dto.response.ResumeResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
