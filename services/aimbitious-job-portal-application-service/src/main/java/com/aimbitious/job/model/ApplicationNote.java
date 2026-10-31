@@ -6,13 +6,18 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 
+/**
+ * Private note added by an employer or recruiter on a specific application.
+ * Candidates never see these notes — internal use only.
+ * Multiple notes can be added over time by different team members.
+ */
+@Entity
+@Table(name = "application_notes")
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Entity
-@Table(name = "application_notes")
 
 public class ApplicationNote {
 
@@ -20,10 +25,11 @@ public class ApplicationNote {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
-    @JoinColumn(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "application_id", nullable = false)
     private Application application;
 
+    /** The employer or recruiter who wrote this note. */
     @Column(nullable = false)
     private Long addedByUserId;
 
