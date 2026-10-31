@@ -10,6 +10,10 @@ public interface ApplicationRepository extends JpaRepository<Application, Long>,
         JpaSpecificationExecutor<Application> {
 
     List<Application> findByCandidateId(Long candidateId);
+
     List<Application> findByJobId(Long jobId);
+
+    List<Application> findByCompanyId(Long companyId);
+
     boolean existsByCandidateIdAndJobId(Long candidateId, Long jobId);
 }
