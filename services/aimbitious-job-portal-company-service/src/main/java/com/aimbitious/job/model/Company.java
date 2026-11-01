@@ -69,7 +69,7 @@ public class Company {
     @Builder.Default
     private CompanyStatus status = CompanyStatus.PENDING_VERIFICATION;
 
-    @Column(nullable = false)
+    @Column(name = "is_verified", nullable = false)
     @Builder.Default
     private Boolean verified = false;
 
