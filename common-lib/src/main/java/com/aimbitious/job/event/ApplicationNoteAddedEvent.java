@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ApplicationNoteAddedEvent {
+
     private Long applicationId;
     private Long candidateId;
     private String candidateEmail;
