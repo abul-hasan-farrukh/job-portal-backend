@@ -5,6 +5,15 @@ spring:
   application:
     name: aimbitious-job-portal-config-server
 
+  cloud:
+    config:
+      server:
+        git:
+#          github repo url below
+          uri: "https://github.com/abul-hasan-farrukh/job-portal-config"
+          clone-on-start: true
+          default-label: master
+
 management:
   endpoints:
     web:
@@ -14,15 +23,6 @@ management:
   endpoint:
     health:
       show-details: never
-
-  cloud:
-    config:
-      server:
-        git:
-#          github repo url below
-          uri: "https://github.com/abul-hasan-farrukh/job-portal-config"
-          clone-on-start: true
-          default-label: master
 
 eureka:
   client:
