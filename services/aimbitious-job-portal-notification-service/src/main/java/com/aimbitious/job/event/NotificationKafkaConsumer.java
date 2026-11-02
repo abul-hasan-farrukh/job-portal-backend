@@ -1,6 +1,6 @@
 package com.aimbitious.job.event;
 
-import com.aimbitious.job.service.EmailNotificationService;
+import com.aimbitious.job.services.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,24 +13,39 @@ public class NotificationKafkaConsumer {
 
     private final EmailNotificationService emailService;
 
+    // Application status changed notification
     @KafkaListener(
             topics = "application.status.changed",
             groupId = "notification-service",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void handleStatusChanged(ApplicationStatusChangedEvent event) {
-        log.info("Received status-changed event: application={}, newStatus={}",
-                event.getApplicationId(), event.getNewStatus());
+    public void handleStatusChanged(
+            ApplicationStatusChangedEvent event) {
+
+        log.info(
+                "Received status-changed event: application={}, newStatus={}",
+                event.getApplicationId(),
+                event.getNewStatus()
+        );
+
         emailService.sendStatusChangedEmail(event);
     }
 
+
+    // Application note added notification
     @KafkaListener(
             topics = "application.note.added",
             groupId = "notification-service",
             containerFactory = "kafkaListenerContainerFactory"
     )
-    public void handleNoteAdded(ApplicationNoteAddedEvent event) {
-        log.info("Received note-added event: application={}", event.getApplicationId());
+    public void handleNoteAdded(
+            ApplicationNoteAddedEvent event) {
+
+        log.info(
+                "Received note-added event: application={}",
+                event.getApplicationId()
+        );
+
         emailService.sendNoteAddedEmail(event);
     }
 }
