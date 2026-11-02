@@ -3,3 +3,13 @@ spring:
     name: aimbitious-job-portal-company-service
   config:
     import: "optional:configserver:https://aimbitious-config-server.onrender.com"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+  endpoint:
+    health:
+      show-details: never
