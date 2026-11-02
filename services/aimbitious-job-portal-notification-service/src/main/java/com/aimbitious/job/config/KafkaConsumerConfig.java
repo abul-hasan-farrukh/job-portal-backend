@@ -30,24 +30,62 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.properties.sasl.jaas.config}")
     private String saslJaasConfig;
 
+
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {
+
         Map<String, Object> props = new HashMap<>();
 
-        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "notification-service");
-        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapServers
+        );
+
+        props.put(
+                ConsumerConfig.GROUP_ID_CONFIG,
+                "notification-service"
+        );
+
+        props.put(
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG,
+                "earliest"
+        );
+
+        props.put(
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
+                false
+        );
+
+        props.put(
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
+                StringDeserializer.class
+        );
 
         // Aiven Kafka authentication
-        props.put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, securityProtocol);
-        props.put(SaslConfigs.SASL_MECHANISM, saslMechanism);
-        props.put(SaslConfigs.SASL_JAAS_CONFIG, saslJaasConfig);
+        props.put(
+                CommonClientConfigs.SECURITY_PROTOCOL_CONFIG,
+                securityProtocol
+        );
 
+        props.put(
+                SaslConfigs.SASL_MECHANISM,
+                saslMechanism
+        );
+
+        props.put(
+                SaslConfigs.SASL_JAAS_CONFIG,
+                saslJaasConfig
+        );
+
+        // JSON deserialization
         JsonDeserializer<Object> deserializer =
                 new JsonDeserializer<>(Object.class);
 
-        deserializer.addTrustedPackages("com.aimbitious.job.event");
+        deserializer.addTrustedPackages(
+                "com.aimbitious.job.event"
+        );
+
+        // Read event type from Kafka message headers
         deserializer.setUseTypeHeaders(true);
 
         return new DefaultKafkaConsumerFactory<>(
@@ -57,7 +95,7 @@ public class KafkaConsumerConfig {
         );
     }
 
-    //Creating kafka listener below
+
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object>
     kafkaListenerContainerFactory() {
@@ -66,6 +104,11 @@ public class KafkaConsumerConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
 
         factory.setConsumerFactory(consumerFactory());
+
+        // Acknowledge messages after successful listener execution
+        factory.getContainerProperties().setAckMode(
+                org.springframework.kafka.listener.ContainerProperties.AckMode.RECORD
+        );
 
         return factory;
     }
