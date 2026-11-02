@@ -56,7 +56,7 @@ public class Resume {
      * When true, this resume is auto-selected when the candidate applies to a job
      * without explicitly choosing a version. Only one resume per candidate can be default.
      */
-    @Column(nullable = false)
+    @Column(name = "is_default", nullable = false)
     @Builder.Default
     private Boolean isDefault = false;
 
@@ -94,7 +94,7 @@ public class Resume {
     @Builder.Default
     private Integer completionScore = 0;
 
-    @Column(nullable = false)
+    @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean active = true;
 
