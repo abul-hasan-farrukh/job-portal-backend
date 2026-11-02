@@ -5,6 +5,16 @@ spring:
   application:
     name: aimbitious-job-portal-config-server
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+  endpoint:
+    health:
+      show-details: never
+
   cloud:
     config:
       server:
