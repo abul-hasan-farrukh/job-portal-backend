@@ -66,6 +66,7 @@ com\aimbitious\job\dto\response\CompanySubscriptionResponse.class
 com\aimbitious\job\dto\response\JobAlertResponse$JobAlertResponseBuilder.class
 com\aimbitious\job\event\ApplicationNoteAddedEvent$ApplicationNoteAddedEventBuilder.class
 com\aimbitious\job\dto\response\RefundResponse$RefundResponseBuilder.class
+com\aimbitious\job\model\embeddable\PersonalInfo.class
 com\aimbitious\job\dto\response\CompanyLocationRequest$CompanyLocationRequestBuilder.class
 com\aimbitious\job\domain\ApplicationSource.class
 com\aimbitious\job\dto\response\ApplicationNoteResponse$ApplicationNoteResponseBuilder.class
@@ -87,6 +88,7 @@ com\aimbitious\job\domain\ResumeVisibility.class
 com\aimbitious\job\dto\response\JobSummaryResponse.class
 com\aimbitious\job\dto\response\ProjectResponse$ProjectResponseBuilder.class
 com\aimbitious\job\exception\UserException.class
+com\aimbitious\job\model\embeddable\PersonalInfo$PersonalInfoBuilder.class
 com\aimbitious\job\dto\response\ApplicationAttachmentResponse.class
 com\aimbitious\job\exception\CompanyException.class
 com\aimbitious\job\dto\response\ResumeResponse$ResumeResponseBuilder.class
