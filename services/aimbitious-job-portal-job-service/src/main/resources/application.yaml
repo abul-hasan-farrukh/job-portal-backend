@@ -12,3 +12,13 @@ spring:
     type: redis
     redis:
       time-to-live: 600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+  endpoint:
+    health:
+      show-details: never
