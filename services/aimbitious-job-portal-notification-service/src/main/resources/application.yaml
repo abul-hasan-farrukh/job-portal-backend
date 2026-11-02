@@ -23,17 +23,11 @@ spring:
       properties:
         spring.json.trusted.packages: "com.aimbitious.job.common.event"
 
-  mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+  emailjs:
+    service-id: ${EMAILJS_SERVICE_ID}
+    template-id: ${EMAILJS_TEMPLATE_ID}
+    public-key: ${EMAILJS_PUBLIC_KEY}
+    private-key: ${EMAILJS_PRIVATE_KEY}
 
 management:
   endpoints:
