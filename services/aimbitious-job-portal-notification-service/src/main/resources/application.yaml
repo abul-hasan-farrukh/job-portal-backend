@@ -43,4 +43,5 @@ management:
 
   endpoint:
     health:
-      show-details: never
+      show-details: always
+      show-components: always
