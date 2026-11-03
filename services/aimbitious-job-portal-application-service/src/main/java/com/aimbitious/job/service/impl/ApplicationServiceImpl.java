@@ -46,7 +46,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     private final ApplicationScreeningService screeningService;
     private final ApplicationEventPublisher eventPublisher;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
 
     // ── Create ────────────────────────────────────────────────────────────────
 
