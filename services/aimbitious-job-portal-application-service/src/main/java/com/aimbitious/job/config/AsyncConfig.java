@@ -1,20 +1,26 @@
 package com.aimbitious.job.config;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import java.util.concurrent.Executor;
-
+@Configuration
 public class AsyncConfig {
 
     @Bean(name = "screeningExecutor")
-    public Executor screeningExecutor() {
+    public ThreadPoolTaskExecutor screeningExecutor() {
+
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(10);
+
+        executor.setCorePoolSize(2);
+        executor.setMaxPoolSize(5);
         executor.setQueueCapacity(50);
+
         executor.setThreadNamePrefix("screening-");
-        executor.initialize();
+
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(30);
+
         return executor;
     }
 }
