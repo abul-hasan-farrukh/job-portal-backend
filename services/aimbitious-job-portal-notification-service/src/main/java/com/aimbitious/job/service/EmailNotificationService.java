@@ -1,4 +1,4 @@
-package com.aimbitious.job.services;
+package com.aimbitious.job.service;
 
 import com.aimbitious.job.domain.ApplicationStatus;
 import com.aimbitious.job.event.ApplicationNoteAddedEvent;
