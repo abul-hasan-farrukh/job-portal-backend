@@ -25,6 +25,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import lombok.extern.slf4j.Slf4j;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class JobServiceImpl implements JobService {
 
     private final JobRepository jobRepository;
@@ -136,11 +138,14 @@ public class JobServiceImpl implements JobService {
     @Transactional(readOnly = true)
     @Cacheable(value = "jobs")
     public List<JobResponse> getJobs(JobSearchRequest req) {
-        List<Job> jobs=jobRepository.findAll(JobSpecification.build(req));
 
-        return jobs.stream().map(
-                this::convertToResponse
-        ).collect(Collectors.toList());
+        log.info("REDIS CACHE MISS: Fetching jobs from PostgreSQL. Request: {}", req);
+
+        List<Job> jobs = jobRepository.findAll(JobSpecification.build(req));
+
+        return jobs.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
