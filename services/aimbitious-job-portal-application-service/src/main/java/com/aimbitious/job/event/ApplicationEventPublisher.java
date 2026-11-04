@@ -28,33 +28,87 @@ public class ApplicationEventPublisher {
     private final JobClient jobClient;
     private final CompanyClient companyClient;
 
-    public void publishStatusChanged(Application app,
-                                     ApplicationStatus oldStatus,
-                                     String note) {
+    public void publishStatusChanged(
+            Application app,
+            ApplicationStatus oldStatus,
+            String note) {
+
         try {
-            UserResponse candidate = userClient.getUserById(app.getCandidateId());
-            JobSummaryResponse job = jobClient.getJobSummaryById(app.getJobId());
-            CompanySummaryResponse company = companyClient.getCompanySummaryById(
-                    app.getCompanyId());
 
-            ApplicationStatusChangedEvent event = ApplicationStatusChangedEvent.builder()
-                    .applicationId(app.getId())
-                    .candidateId(app.getCandidateId())
-                    .candidateEmail(candidate.getEmail())
-                    .candidateName(candidate.getFullName())
-                    .oldStatus(oldStatus)
-                    .newStatus(app.getStatus())
-                    .note(note)
-                    .jobTitle(job.getTitle())
-                    .companyName(company.getName())
-                    .changedAt(LocalDateTime.now())
-                    .build();
+            log.info(
+                    "Preparing status-changed event for application {}",
+                    app.getId()
+            );
 
-            kafkaTemplate.send(TOPIC_STATUS_CHANGED,
-                    String.valueOf(app.getId()), event);
-            log.info("Published status-changed event for application {}", app.getId());
+            // Fetch candidate details
+            UserResponse candidate =
+                    userClient.getUserById(app.getCandidateId());
+
+            // Fetch job details
+            JobSummaryResponse job =
+                    jobClient.getJobSummaryById(app.getJobId());
+
+            // Fetch company details
+            CompanySummaryResponse company =
+                    companyClient.getCompanySummaryById(app.getCompanyId());
+
+            // Build event
+            ApplicationStatusChangedEvent event =
+                    ApplicationStatusChangedEvent.builder()
+                            .applicationId(app.getId())
+                            .candidateId(app.getCandidateId())
+                            .candidateEmail(candidate.getEmail())
+                            .candidateName(candidate.getFullName())
+                            .oldStatus(oldStatus)
+                            .newStatus(app.getStatus())
+                            .note(note)
+                            .jobTitle(job.getTitle())
+                            .companyName(company.getName())
+                            .changedAt(LocalDateTime.now())
+                            .build();
+
+            log.info(
+                    "Sending Kafka event: application={}, oldStatus={}, newStatus={}, recipient={}",
+                    app.getId(),
+                    oldStatus,
+                    app.getStatus(),
+                    candidate.getEmail()
+            );
+
+            // Send asynchronously and inspect the actual result
+            kafkaTemplate.send(
+                    TOPIC_STATUS_CHANGED,
+                    String.valueOf(app.getId()),
+                    event
+            ).whenComplete((result, exception) -> {
+
+                if (exception != null) {
+
+                    log.error(
+                            "Kafka FAILED to publish status event for application {}",
+                            app.getId(),
+                            exception
+                    );
+
+                } else {
+
+                    log.info(
+                            "Kafka successfully published status event. Topic={}, Partition={}, Offset={}, Application={}",
+                            result.getRecordMetadata().topic(),
+                            result.getRecordMetadata().partition(),
+                            result.getRecordMetadata().offset(),
+                            app.getId()
+                    );
+                }
+            });
+
         } catch (Exception e) {
-            log.error("Failed to publish status-changed event for application {}", app.getId(), e);
+
+            log.error(
+                    "Failed while preparing or publishing status event for application {}. Check UserClient, JobClient and CompanyClient.",
+                    app.getId(),
+                    e
+            );
         }
     }
 
