@@ -3,6 +3,7 @@ package com.aimbitious.job.config;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.config.SaslConfigs;
+import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -29,6 +30,10 @@ public class KafkaConsumerConfig {
 
     @Value("${spring.kafka.properties.sasl.jaas.config}")
     private String saslJaasConfig;
+
+    //Kafka CA_CERT
+    @Value("${KAFKA_CA_CERT}")
+    private String kafkaCaCert;
 
 
     @Bean
@@ -76,6 +81,10 @@ public class KafkaConsumerConfig {
                 SaslConfigs.SASL_JAAS_CONFIG,
                 saslJaasConfig
         );
+
+        // Aiven Kafka SSL certificate configuration
+        props.put(SslConfigs.SSL_TRUSTSTORE_TYPE_CONFIG, "PEM");
+        props.put(SslConfigs.SSL_TRUSTSTORE_CERTIFICATES_CONFIG, kafkaCaCert);
 
         // JSON deserialization
         JsonDeserializer<Object> deserializer =
