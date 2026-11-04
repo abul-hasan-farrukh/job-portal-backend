@@ -1,6 +1,5 @@
 package com.aimbitious.job.service;
 
-import com.aimbitious.job.domain.ApplicationStatus;
 import com.aimbitious.job.dto.response.ApplicationResponse;
 import com.aimbitious.job.exception.ApplicationException;
 import com.aimbitious.job.exception.ResourceNotFoundException;
