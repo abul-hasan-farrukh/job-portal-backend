@@ -17,8 +17,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
 
   endpoint:
     health:
-      show-details: never
+      show-details: always
+      show-components: always
