@@ -1,6 +1,6 @@
 package com.aimbitious.job.event;
 
-import com.aimbitious.job.services.EmailNotificationService;
+import com.aimbitious.job.service.EmailNotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -23,12 +23,32 @@ public class NotificationKafkaConsumer {
             ApplicationStatusChangedEvent event) {
 
         log.info(
-                "Received status-changed event: application={}, newStatus={}",
+                "Received application status event. Application={}, Candidate={}, Status={}, Email={}",
                 event.getApplicationId(),
-                event.getNewStatus()
+                event.getCandidateId(),
+                event.getNewStatus(),
+                event.getCandidateEmail()
         );
 
-        emailService.sendStatusChangedEmail(event);
+        try {
+
+            emailService.sendStatusChangedEmail(event);
+
+            log.info(
+                    "Status-change email processing completed for application {}",
+                    event.getApplicationId()
+            );
+
+        } catch (Exception e) {
+
+            log.error(
+                    "Failed to process status-change email for application {}",
+                    event.getApplicationId(),
+                    e
+            );
+
+            throw e;
+        }
     }
 
 
