@@ -14,3 +14,6 @@ management:
   endpoint:
     health:
       show-details: never
+
+google:
+  client-id: ${GOOGLE_CLIENT_ID}
