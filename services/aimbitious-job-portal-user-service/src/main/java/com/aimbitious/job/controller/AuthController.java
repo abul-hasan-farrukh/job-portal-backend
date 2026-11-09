@@ -3,6 +3,7 @@ package com.aimbitious.job.controller;
 
 import com.aimbitious.job.exception.UserException;
 import com.aimbitious.job.payload.AuthResponse;
+import com.aimbitious.job.payload.GoogleLoginRequest;
 import com.aimbitious.job.payload.LoginRequest;
 import com.aimbitious.job.payload.SignupRequest;
 import com.aimbitious.job.service.AuthService;
@@ -31,5 +32,13 @@ public class AuthController {
     public ResponseEntity<AuthResponse> login(
             @RequestBody @Valid LoginRequest req) throws UserException {
         return ResponseEntity.ok(authService.login(req));
+    }
+
+    @PostMapping("/google")
+    public ResponseEntity<AuthResponse> googleLogin(
+            @RequestBody @Valid GoogleLoginRequest req)
+            throws UserException {
+
+        return ResponseEntity.ok(authService.googleLogin(req));
     }
 }
