@@ -45,6 +45,7 @@ public class User {
     @Column(nullable = false)
     private AuthProvider authProvider = AuthProvider.LOCAL;
 
+    @Column(unique = true)
     private String googleId;
 
     @Enumerated(EnumType.STRING)
